@@ -1,0 +1,43 @@
+# Sellmo · User-Datenbank (Beispiel-File · KOPIEREN nach users.yaml)
+#
+# WICHTIG:
+#   - users.yaml NIEMALS ins Git (steht in .gitignore)
+#   - bcrypt-Hashes via `python3 hash_password.py` erzeugen
+#   - Klartext-Passwoerter nirgends speichern, nur dem Closer schicken
+#
+# Bei neuem Closer:
+#   1. python3 hash_password.py
+#   2. Hash-Output in diese Datei einfuegen (neuer Eintrag unter usernames)
+#   3. Klartext dem Closer persoenlich schicken
+#   4. ggf. app neu starten (Streamlit reloadet config automatisch)
+
+credentials:
+  usernames:
+    # Beispiel-Eintrag fuer Christian (zum Testen) — bitte ersetzen
+    christian:
+      email: christian@sellmo.io
+      name: Christian Hafner
+      # Hash erzeugt mit: python3 hash_password.py "DeinPasswort"
+      # Default Klartext im Beispiel: "ChangeMe123!" (BITTE AENDERN!)
+      password: $2b$12$YXVnIeBzEhJX1qzHmYR4DOFM/QwTKuJzfEKsftd5HJyT5XW3lZGV2
+      role: founder            # founder | closer | beta-tester
+      avv_accepted: false      # wird auf true gesetzt, sobald der User die AVV-Checkbox akzeptiert hat
+      avv_accepted_at: null    # ISO-Timestamp der Akzeptanz
+
+    # Weitere User-Beispiele (auskommentiert):
+    # closer_01:
+    #   email: max@beispiel.de
+    #   name: Max Mustermann
+    #   password: $2b$12$...
+    #   role: closer
+    #   avv_accepted: false
+    #   avv_accepted_at: null
+
+cookie:
+  # Cookie-Name (frei waehlbar)
+  name: sellmo_auth_cookie
+  # Geheimer Key — ERSETZEN mit langem zufaelligem String!
+  # Generieren mit: python3 -c "import secrets; print(secrets.token_hex(32))"
+  key: REPLACE_WITH_SECRET_HEX_64_CHARS
+  # Cookie-Gueltigkeit in Tagen
+  expiry_days: 30

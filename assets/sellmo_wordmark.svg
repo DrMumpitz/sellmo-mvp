@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="44" viewBox="0 0 180 44" role="img" aria-label="sellmo">
+  <text x="0" y="34"
+        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        font-weight="800"
+        font-size="40"
+        letter-spacing="-1.6">
+    <tspan fill="#F5F5F7">sell</tspan><tspan fill="#FF6B35">mo</tspan>
+  </text>
+</svg>

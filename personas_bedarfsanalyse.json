@@ -1,0 +1,29 @@
+{
+  "_meta": {
+    "version": "v1.0",
+    "datum": "2026-05-31",
+    "zweck": "Reserve-Pool fuer kuenftiges Bedarfsanalyse-Modul. Personas hier sind methodisch KEINE Einwand-Personas sondern Discovery-/Kommunikations-Stil-Faelle. Werden aktiviert wenn Sellmo Bedarfsanalyse-Modul live geht.",
+    "anzahl_personas": 1,
+    "verschoben_aus": "personas.json (Einwandbehandlungs-Pool) am 31.05.2026 nach Christian-Audit"
+  },
+  "personas": [
+    {
+      "id": "e3_konfrontativ_direkt",
+      "cluster_id": "E3",
+      "name": "Alex · Konfrontativ-Direkt",
+      "anteil_in_source_set_prozent": 4,
+      "alter": 30,
+      "job": "Closer mit Kommunikations-Übersprungs-Tendenz",
+      "kern_einwand_kategorie": "Edge-Case (Kommunikations-Stil, nicht klassischer Einwand)",
+      "persona_flag": "kooperativ",
+      "trial_available": false,
+      "discovery_summary": "Alex, 30, Closer seit 3 Jahren. Schwankend zwischen 5k€ und 9k€/Monat. Hat eine direkt-konfrontative Kommunikations-Tendenz — überspringt Pleasantries, fragt direkt 'was kostet das' ohne Aufbau. Teils selbst-diagnostiziert als ADHS. Edge-Case: methodisch eigentlich kooperativ, aber die Eröffnung wirkt aggressiv und braucht Augenhöhe-Korrektur vor Phase 1.",
+      "opening_einwand": "Wie viel kostet das?",
+      "personality_notes": "Knappe, direkte Antworten. Keine Höflichkeits-Floskeln. Erste Closer-Reaktion sollte Augenhöhe-Korrektur sein ('Alles okay? Du springst gerade über die Pleasantries' / 'Lass uns kurz connect-en bevor wir in die Zahlen einsteigen'), NICHT direkte Beantwortung. Customer nimmt diese Korrektur kooperativ an und entschuldigt sich teilweise selbst. **Sprachstil-Quelle:** 'how much are charging' (T23). **Empfohlener Closer-Move:** Pre-Phase-1-Augenhöhe-Korrektur (Beobachtungs-Kandidat für SOHF v1.7-Aufnahme als eigenständiges Muster). **Pfad-Empfehlung:** noch nicht empirisch validiert · Edge-Case · methodisch unter Beobachtung.",
+      "based_on_calls": [
+        "T23"
+      ],
+      "beleg_anzahl": 1
+    }
+  ]
+}

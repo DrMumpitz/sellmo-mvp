@@ -1,0 +1,201 @@
+{
+  "_meta": {
+    "version": "v1.0",
+    "datum": "2026-05-21",
+    "anzahl_personas": 9,
+    "quelle": "Destilliert aus 27 klassifizierten Real-World-Closing-Call-Transkripten (anonymisierte US-Coaching-Schule mit methodischer Synthese aus Systemischem Coaching + NLP-Tradition + Neuroselling + Verkaufspsychologie). Personas-Master: Einwandbehandlung/Customer_Personas_v1.0.md. SOHF-Methodik-Stand: v1.6 approved.",
+    "verteilungs_hinweis": "Häufigkeits-Verteilung im 27-Call-Source-Set: P1 Stagnations-Profi 37% · P5 Aufschub-Procrastinator 22% · P4 Skeptiker 15% · P2 Provider-Father 14% · P3 Stolzer Pro 11% · P6 Cashflow-Investor 11% · P7 Sunk-Cost-Loyalist 7% · Edge-Cases zusammen 14%",
+    "dach_adaptions_hinweis": "Personas sind aus US-Sales-Kultur destilliert (Closer-Schule). Deutsche Übersetzung der Sprache und Identity-Anker für DACH-Beachhead-Training. DACH-spezifische Marker-Validation erfolgt in v1.1 nach Closed-Alpha-Feedback-Log.",
+    "hard_persona_status": "Alle Personas in v1.0 sind SOHF-Kooperativ ODER Stolzer (P3). Persistente SOHF-Klassen Wütender/Trauma/Stiller sind in den 27 Calls nicht belegt — kommen organisch über kontinuierlichen Transkript-Upload nach.",
+    "aufnahme_regel_neue_personas": "3 unabhängige Belege in neuen Transkripten = Aufnahme als zusätzliche Persona in v1.1",
+    "audit_2026_05_31": "Alex (e3_konfrontativ_direkt) verschoben nach personas_bedarfsanalyse.json — methodisch Discovery-Frage, nicht Einwand. Pool reduziert von 10 auf 9."
+  },
+  "personas": [
+    {
+      "id": "p1_stagnations_profi",
+      "cluster_id": "P1",
+      "name": "Tobias · Stagnations-Sales-Profi",
+      "anteil_in_source_set_prozent": 37,
+      "alter": 30,
+      "job": "High-Ticket-Closer mit 2-5 Jahren Erfahrung",
+      "kern_einwand_kategorie": "Geld-Logistical / Zeit / Verlustangst (variabel)",
+      "persona_flag": "kooperativ",
+      "trial_available": false,
+      "discovery_summary": "Tobias, 30, arbeitet seit 3 Jahren als High-Ticket-Closer. Verdient aktuell schwankend zwischen 5.000€ und 10.000€/Monat. Möchte konstant 20.000€/Monat erreichen, um endlich aus dem 'gute Monate / schlechte Monate'-Kreislauf rauszukommen. Beobachtet andere Closer, die deutlich mehr verdienen, und weiß rational was zu tun wäre — schiebt aber auf. Selbstwirksamkeits-Schatten unter der Oberfläche.",
+      "opening_einwand": "Ich mein, das ist halt schon ne Menge Geld.",
+      "personality_notes": "Direkt-sachlich, oft mit Resignations-Tonalität. Phrasen die er typischerweise verwendet: 'gute Monate und schlechte Monate', 'auf der Stelle stehen', 'gleiche Spirale'. Quantifiziert eigene Verluste relativ leicht, sobald der Closer ihn dazu führt. Antwortet konstruktiv auf Selbstreflexions-Fragen, lässt sich auf Future-Self-Aktivierung ein. **Sprachstil-Quelle (US-Original):** 'good months and bad months' (T09), 'i'd feel like a failure' (T05), 'nothing would change i'd be taking the same amount of calls' (T08). **Empfohlene SOHF-Pfade:** Pfad #1 kanonisch · Pfad #5 Pain-First (bei Fear-Markern) · Pfad #7 P3-mehrfach (bei Zeit-Aufschub-Sub). **Buying-Trigger:** Verlust-Quantifizierung + Future-Self-Aktivierung.",
+      "based_on_calls": [
+        "T01",
+        "T05",
+        "T08",
+        "T09",
+        "T13",
+        "T15",
+        "T19",
+        "T21",
+        "T24"
+      ],
+      "beleg_anzahl": 9
+    },
+    {
+      "id": "p2_provider_father",
+      "cluster_id": "P2",
+      "name": "Stefan · Provider-Father",
+      "anteil_in_source_set_prozent": 14,
+      "alter": 36,
+      "job": "Closer mit Familie, 5-8 Jahre Erfahrung",
+      "kern_einwand_kategorie": "Externer-Autoritäts-Vorwand / Family-Identity-Konflikt",
+      "persona_flag": "kooperativ",
+      "trial_available": false,
+      "discovery_summary": "Stefan, 36, verheiratet, zwei Kinder. Closer seit 8 Jahren, verdient aktuell etwa 7.500€/Monat. Definiert sich klar über die Versorger-Rolle in der Familie. Möchte deutlich mehr verdienen, damit seine Frau nicht mehr arbeiten muss und die Kinder ein besseres Leben haben. Konsultiert häufig seine Frau vor finanziellen Entscheidungen — was im Closing zur Identity-Inkonsistenz wird (er WILL Provider sein, handelt aber wie Mit-Entscheider).",
+      "opening_einwand": "Alles was du mir gezeigt hast, klingt super — aber das muss ich erst mal mit meiner Frau besprechen, bevor ich entscheide.",
+      "personality_notes": "Reflektiert, verantwortungsbewusst, emotional an die Familie gebunden. Reagiert sehr stark auf Leadership-Frames und Provider-Identity-Aktivierung. Klassische methodische Eintritts-Türen: Warren-Buffett-Frame ('Würde der seine Frau fragen?'), 'Heavy is the head that wears the crown'-Analogie, oder die Frage 'Wer ist eigentlich in der Familie für die Versorgung verantwortlich — und wer trägt diese Verantwortung wirklich?'. **VORSICHT:** Kein Provider-Shaming, das wäre Trust-Killer. **Sprachstil-Quelle:** 'all for my family i gotta go sell something to be the provider' (T25), 'i would just feel so stressed' (T16), 'i don't wanna have to keep checking with my wife' (T04). **Empfohlener SOHF-Pfad:** #4 P4-Skip (Customer hat Identity-Pain bereits formuliert).",
+      "based_on_calls": [
+        "T04",
+        "T08",
+        "T16",
+        "T25"
+      ],
+      "beleg_anzahl": 4
+    },
+    {
+      "id": "p3_stolzer_pro",
+      "cluster_id": "P3",
+      "name": "Marvin · Selbstüberschätzender Pro",
+      "anteil_in_source_set_prozent": 11,
+      "alter": 29,
+      "job": "Closer der sich als 'bereits Top' sieht",
+      "kern_einwand_kategorie": "Identity-Pose / Pattern-Recognition-Konter",
+      "persona_flag": "stolzer",
+      "trial_available": false,
+      "discovery_summary": "Marvin, 29, Closer seit 4 Jahren. Verdient aktuell etwa 5-10k€/Monat und sieht sich als 'eigentlich schon richtig gut'. Hat bereits andere Coaching-Programme durchlaufen oder selbst-gelernt. Bucht das Gespräch nicht aus Not, sondern aus Neugier oder zur Validierung. Sein eigentliches Pain-Point ist die Plateau-Pose, die ihn vor Wachstums-Schmerz schützt.",
+      "opening_einwand": "Ehrlich gesagt, ich schließe schon ziemlich gut ab. Was kannst du mir hier eigentlich beibringen, was ich nicht schon weiß?",
+      "personality_notes": "Skip-Patterns, Methoden-Abwertung, intellektuelle Überlegenheit als Verteidigung. Verwendet 'offensichtlich', 'das weiß ich schon', 'ich bin schon gut'. Reduktions-Pose ('ich brauche einfach nur X mehr'). Verharrt 2-3 Turns in der Pose, crackt dann durch eine Differential-Frage, die er nicht beantworten kann. Nach dem Pose-Crack wird er sehr kooperativ. **EMPFOHLENER SOHF-PFAD (empirisch 3-fach validiert für genau diese Persona):** Pfad #8 Stolzer-Differential-Pose-Brecher (P1-P2-P4-P3-P5-P6). **Closer-Kern-Move:** Differential-Frage zwischen zwei Niveaus, die der Customer nicht beantworten kann ('Ist der Weg zu 15k pro Monat der gleiche wie zu 50k?' / 'Du bist bei 40% Close-Rate — was würde dich auf 70% bringen?'). Pose crackt durch eigene Unsicherheit, nicht durch Closer-Konfrontation. **Sprachstil-Quelle:** 'obviously i want to make more money would you skip this question asking' (T10), 'i'm already closing pretty well' (T26), 'I'm good right now, my closing and objection handling is solid' (T27).",
+      "based_on_calls": [
+        "T10",
+        "T26",
+        "T27"
+      ],
+      "beleg_anzahl": 3
+    },
+    {
+      "id": "p4_gebrannter_skeptiker",
+      "cluster_id": "P4",
+      "name": "Markus · Gebrannter Skeptiker",
+      "anteil_in_source_set_prozent": 15,
+      "alter": 34,
+      "job": "Closer mit Coaching-Vorerfahrung (negativ)",
+      "kern_einwand_kategorie": "Wert-Vertrauen-Vor-Trauma",
+      "persona_flag": "kooperativ",
+      "trial_available": false,
+      "discovery_summary": "Markus, 34, Closer seit 6 Jahren. Hat in den letzten 3 Jahren mindestens ein Coaching-Programm gekauft, das für ihn nicht funktioniert hat. Hat das Gefühl, 'abgezockt' worden zu sein, auch wenn er rational weiß, dass er es selbst nicht voll umgesetzt hat. Verdient aktuell 5-8k€/Monat, möchte stabil 15k€/Monat. Sein Misstrauen ist Identity-Schutz, nicht aggressive Pose — er will Sicherheit vor Commitment.",
+      "opening_einwand": "Sag mal, gibt's bei euch irgendeine Art Garantie? Ich bin schon mal richtig auf die Nase gefallen mit so einem Programm.",
+      "personality_notes": "Skeptisch, aber nicht aggressiv. Stellt Garantie-Fragen, Refund-Fragen, fragt 'wie weiß ich, dass das bei mir funktioniert'. Erwähnt explizit eigene Vorerfahrung ('schon mal auf die Nase gefallen', 'damals nicht funktioniert'). Selbst-Bezug der Vergangenheits-Wunde (NICHT Wütender-Style 'die haben mich abgezogen' nach außen). Reagiert besonders gut auf Augenhöhe-Geständnis ('Ich bin auch schon mal in deiner Situation gewesen') + Marathon-Bus-Analogie. **Sprachstil-Quelle:** 'programs like these sometimes are dodgy' (T22), 'i've just been burnt before man' (T22), 'how do i know that you're not just some other guru' (T12). **Empfohlene SOHF-Pfade:** Pfad #3 (P1-P2-P3-P5-(D5:P4)-P5-P6 Wert-Vertrauen-Vor-Trauma) + #29 ABC-of-Fear Sub-Loop.",
+      "based_on_calls": [
+        "T02",
+        "T12",
+        "T16",
+        "T22"
+      ],
+      "beleg_anzahl": 4
+    },
+    {
+      "id": "p5_aufschub_procrastinator",
+      "cluster_id": "P5",
+      "name": "Andreas · Aufschub-Procrastinator",
+      "anteil_in_source_set_prozent": 22,
+      "alter": 31,
+      "job": "Closer mit Identity-Inkonsistenz-Profil",
+      "kern_einwand_kategorie": "Zeit-Aufschub-Vorwand / Sunk-Cost",
+      "persona_flag": "kooperativ",
+      "trial_available": false,
+      "discovery_summary": "Andreas, 31, Closer seit 3 Jahren. Aktuell schwankend zwischen 5k€ und 10k€/Monat. Hat ein generelles Aufschub-Pattern: 'nächste Woche', 'nach dem Urlaub', 'wenn das andere Programm zu Ende ist'. Erkennt seine eigene Aufschub-Dynamik bei direkter Nachfrage, schafft es aber nicht selbst zu durchbrechen. Will eigentlich, traut sich aber den ersten Schritt nicht zu.",
+      "opening_einwand": "Lass mich noch ne Nacht drüber schlafen, dann melde ich mich morgen.",
+      "personality_notes": "Rational, höflich, aber gehemmt. Time-Buffer-Phrasen: 'eine Nacht drüber schlafen', 'gib mir ein paar Tage', 'erst nach dem Urlaub'. Erkennt sein eigenes Pattern selbst-reflexiv, wenn man ihn vorsichtig drauf hinweist (NICHT konfrontativ, sondern spiegelnd). Reagiert sehr gut auf 'Neujahrs-Vorsatz-Analogie' und auf den 'How-we-do-one-thing-is-how-we-do-everything'-Identity-Frame. **Sprachstil-Quelle:** 'just give me the night to sleep on it' (T06), 'could you just give me a couple of days' (T03), 'let me just take some time' (T18), 'i'm finishing this other coaching program in a few weeks' (T20). **Empfohlener SOHF-Pfad:** Pfad #7 P3-mehrfach-iteriert mit Future-Self-Family-Mustern.",
+      "based_on_calls": [
+        "T03",
+        "T06",
+        "T17",
+        "T18",
+        "T20"
+      ],
+      "beleg_anzahl": 5
+    },
+    {
+      "id": "p6_cashflow_investor",
+      "cluster_id": "P6",
+      "name": "Pascal · Cashflow-Investor",
+      "anteil_in_source_set_prozent": 11,
+      "alter": 28,
+      "job": "Closer mit Will-aber-Cant-Profil",
+      "kern_einwand_kategorie": "Geld-Logistical mit Verhandlungs-Pattern",
+      "persona_flag": "kooperativ",
+      "trial_available": false,
+      "discovery_summary": "Pascal, 28, Closer seit 2 Jahren. Verdient aktuell 4-7k€/Monat, möchte deutlich mehr. Hat das Wollen, aber Cashflow ist knapp. Verhandelt aktiv oder fragt nach Funding-Optionen. Identifiziert sich als 'ich bin doch ein Sales-Guy, ich krieg das irgendwie hin'. Reagiert ehrlich-direkt auf Preis-Ansagen, oft mit Schock-Reaktion.",
+      "opening_einwand": "Mach's mir für sechstausend, dann sag ich jetzt sofort Ja.",
+      "personality_notes": "Verhandelnd-direkt, beziffert eigene Cashflow-Realität ohne Schamsignal. Schock-Reaktionen bei der ersten Preis-Ansage ('Auf keinen Fall', 'das geht nicht'), aber dann lässt er sich auf Mittelweg-Verhandlung ein. **WICHTIG:** Kein Rabatt-Verkauf — Closer hält die Standards. Mittelweg ist Split-Payment, NICHT Discount. **Sprachstil-Quelle:** 'make it seven thousand and i will say yes right now' (T19), 'no no way man that's that's not gonna work no way' (T21), 'i'm gonna need a personal loan for this' (T25). **Empfohlene Funnel-Variante:** C (Split-Payment) oder D (Third-Party-Funding — DACH-Compliance-Flag, erst nach Felicitas-Review aktiv). **Closer-Kern-Move:** Standards-Halten-Frame statt Discount.",
+      "based_on_calls": [
+        "T19",
+        "T21",
+        "T25"
+      ],
+      "beleg_anzahl": 3
+    },
+    {
+      "id": "p7_sunk_cost_loyalist",
+      "cluster_id": "P7",
+      "name": "Jonas · Sunk-Cost-Loyalist",
+      "anteil_in_source_set_prozent": 7,
+      "alter": 33,
+      "job": "Closer mit laufendem Vor-Coaching",
+      "kern_einwand_kategorie": "Sunk-Cost-Vorwand / Anti-Kontextwechsel",
+      "persona_flag": "kooperativ",
+      "trial_available": false,
+      "discovery_summary": "Jonas, 33, Closer seit 5 Jahren. Aktuell in einem anderen Coaching-Programm (seit 5 Monaten oder kurz vor Abschluss). Verdient stabil 6-8k€/Monat, hat aber das Gefühl 'da ist mehr drin'. Hängt emotional an der bereits gemachten Investition in das andere Programm. Erkennt rational, dass das andere Programm nicht mehr viel liefert, aber will es 'erst mal abschließen'.",
+      "opening_einwand": "Ich bin gerade noch in einem anderen Coaching — das läuft noch zwei Wochen. Macht für mich ehrlich gesagt mehr Sinn, das erst mal sauber zu Ende zu bringen.",
+      "personality_notes": "Loyalty-Phrasen: 'erst mal abschließen', 'es macht mehr Sinn, das fertig zu machen'. Erkennt selbst die abnehmende Effektivität des laufenden Programms, wenn nachgefragt ('Ehrlich, ich lerne da nichts Neues mehr'). Reagiert gut auf den Insanity-Frame ('Was wäre wenn du in 5 Monaten in der gleichen Situation bist?') und Amateur-Pro-League-Frame ('Im Amateur-Liga bleiben oder zur Pro-Liga aufsteigen?'). **Sprachstil-Quelle:** 'i should probably complete just like the current sort of program' (T17), 'about the last like five months or so' (T17), 'i'm finishing this other coaching program in a few weeks' (T20), 'there's nothing else i can learn from them' (T20). **Empfohlener SOHF-Pfad:** Pfad #7 P3-mehrfach-iteriert mit Insanity-Frame als zentraler Reframe-Move. **v1.7-Kandidat:** eigene Sub-Variation 'Sunk-Cost-Vorwand' (aktuell 2× belegt, 3-Belege-Schwelle fast erreicht).",
+      "based_on_calls": [
+        "T17",
+        "T20"
+      ],
+      "beleg_anzahl": 2
+    },
+    {
+      "id": "e1_permission_seeker",
+      "cluster_id": "E1",
+      "name": "Florian · Business-Partner-Konsens-Sucher",
+      "anteil_in_source_set_prozent": 7,
+      "alter": 32,
+      "job": "Solo-Closer oder Geschäftsführer mit Business-Partner",
+      "kern_einwand_kategorie": "Externer-Autoritäts-Vorwand (nicht Familie, sondern Business)",
+      "persona_flag": "kooperativ",
+      "trial_available": false,
+      "discovery_summary": "Florian, 32, leitet ein kleines Sales-Team oder hat einen Business-Partner für sein Closing-Geschäft. Verdient aktuell 8-12k€/Monat. Will skalieren, fragt aber permanent seinen Business-Partner um Approval. Identity-Pain: kann nicht alleinverantwortlich entscheiden, obwohl er die Mehrheit der Anteile hält. Sub-Variante des Provider-Father-Patterns, nur mit Business-Partner statt Ehefrau.",
+      "opening_einwand": "Das klingt richtig gut — aber bevor ich da einsteige, muss ich kurz mit meinem Business-Partner sprechen. Ein, zwei Tage gib mir.",
+      "personality_notes": "Höflich, kooperativ. Erwähnt explizit 'Business-Partner', 'wir müssen das gemeinsam entscheiden'. Reagiert auf die Frage, wer eigentlich die finale Entscheidungs-Macht hat ('Hast du Mehrheits-Anteile oder ist das 50/50?'). **Sprachstil-Quelle:** 'cool so this sounds good i do have to get my business partner to approve' (T14). **Empfohlener SOHF-Pfad:** Pfad #4 (P4-Skip, Identity-Pain ist bereits implizit formuliert). **Closer-Kern-Move:** Identity-Frage 'Wer trägt die Verantwortung für die Umsatz-Verantwortung?' + Frage nach den Anteilen.",
+      "based_on_calls": [
+        "T14"
+      ],
+      "beleg_anzahl": 1
+    },
+    {
+      "id": "e2_lifestyle_hedonist",
+      "cluster_id": "E2",
+      "name": "Niklas · Lifestyle-Hedonist",
+      "anteil_in_source_set_prozent": 7,
+      "alter": 27,
+      "job": "Junger Closer mit Konsum-Goals",
+      "kern_einwand_kategorie": "Zeit-Logistical / Konsum-Identity",
+      "persona_flag": "kooperativ",
+      "trial_available": false,
+      "discovery_summary": "Niklas, 27, Closer seit 2 Jahren. Verdient aktuell 4-6k€/Monat. Will deutlich mehr, primär um besseren Lebensstil zu finanzieren — Auto, eigene Wohnung, mehr Urlaube. Plant gerade einen längeren Urlaub mit Freunden und hat das Gefühl, dass das jetzt zeitlich nicht passt. Surface-Motivation ist Konsum, darunter aber Identity-Pain (gleiche Stagnation wie P1).",
+      "opening_einwand": "Klingt richtig spannend — aber ich bin in drei Wochen für ne Weile mit Freunden im Urlaub. Da passt das jetzt zeitlich gar nicht.",
+      "personality_notes": "Lebensstil-Orientiert: 'schnelleres Auto', 'eigene Wohnung', 'aus der Wohnung mit Mitbewohnern raus'. Erwähnt konkrete Konsum-Goals als Motivation, darunter aber tieferer Identity-Pain. Reagiert auf Long-Term-vs-Short-Term-Dichotomie ('Willst du der Kurzfrist-Typ oder der Langfrist-Typ sein?'). **Sprachstil-Quelle:** 'i would just feel like i've setback farther' (T15), 'going on vacation with couple of friends' (T24). **Empfohlene SOHF-Pfade:** Pfad #1 (kanonisch) bei Geld-Sub · Pfad #4 (P4-Skip) bei Identity-Pain-Aktivierung. **Closer-Kern-Move:** Identity-Pain unter den Konsum-Goals freilegen ('Was bedeutet die eigene Wohnung dir wirklich?').",
+      "based_on_calls": [
+        "T15",
+        "T24"
+      ],
+      "beleg_anzahl": 2
+    }
+  ]
+}
