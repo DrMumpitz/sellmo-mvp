@@ -2471,35 +2471,31 @@ def render_setup_screen():
     # Konstruiere die Persona aus der aktuellen Zelle
     selected_persona = build_mvp_persona(mvp_persona, mvp_grad)
 
-    # === CloserCoach-Style Preview-Card der getroffenen Auswahl ===
+    # === Preview-Card der getroffenen Auswahl (User-Sprache, ohne interne Codes) ===
     _persona_emoji = {"F": "🎯", "O": "🤝", "R": "🧘", "M": "🔍"}.get(mvp_persona, "👤")
     _diff_class = "cc-diff-easy" if mvp_grad <= 2 else ("cc-diff-med" if mvp_grad == 3 else "cc-diff-hard")
     _grad_label = next(g["label"] for g in MVP_GRADE if g["key"] == mvp_grad)
     _base = MVP_PERSONAS[mvp_persona]
+    _opening_einwand = selected_persona["opening_einwand"].replace('"', '&quot;')
     st.markdown(
-        f'<div class="cc-persona-card selected" style="max-width:340px; margin: 8px 0 24px;">'
+        f'<div class="cc-persona-card selected" style="max-width:420px; margin: 8px 0 24px;">'
         f'  <div class="cc-persona-photo">{_persona_emoji}</div>'
-        f'  <div class="cc-persona-body">'
-        f'    <div class="cc-persona-name">{_base["name"]} · {_base["alter"]}</div>'
-        f'    <div class="cc-persona-meta">'
-        f'      <span class="cc-diff-dot {_diff_class}"></span> '
-        f'      Grad {mvp_grad} · {_grad_label}'
+        f'  <div class="cc-persona-body" style="padding: 16px 18px 20px;">'
+        f'    <div class="cc-persona-name" style="font-size: 17px;">{_base["name"]} · {_base["alter"]}</div>'
+        f'    <div style="font-size: 13px; color: {TEXT_SECONDARY}; margin-top: 3px;">{_base["job"]}</div>'
+        f'    <div class="cc-persona-meta" style="margin-top: 10px;">'
+        f'      <span class="cc-diff-dot {_diff_class}"></span> {_grad_label}'
         f'    </div>'
-        f'    <div style="font-size:12px; color:{TEXT_TERTIARY}; margin-top:6px;">'
-        f'      Zelle {mvp_persona}{mvp_grad} · {_base["job"]}'
+        f'    <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid {BORDER_DEFAULT};">'
+        f'      <div style="font-size: 11px; color: {TEXT_TERTIARY}; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">'
+        f'        So startet er</div>'
+        f'      <div style="font-size: 14px; color: {TEXT_PRIMARY}; line-height: 1.45; font-style: italic;">'
+        f'        „{_opening_einwand}"</div>'
         f'    </div>'
         f'  </div>'
         f'</div>',
         unsafe_allow_html=True
     )
-
-    with st.expander(f"Zelle {mvp_persona}{mvp_grad} · Discovery-Profil sehen"):
-        base = MVP_PERSONAS[mvp_persona]
-        grad_entry = next(g for g in MVP_GRADE if g["key"] == mvp_grad)
-        st.markdown(f"**{base['name']}** · {base['alter']} · {base['job']}")
-        st.markdown(f"**Schwierigkeitsgrad:** {mvp_grad} · {grad_entry['label']}")
-        st.markdown(selected_persona["discovery_summary"])
-        st.markdown(f"_Eröffnungs-Einwand:_ „{selected_persona['opening_einwand']}\"")
 
     # === 4. Coach-Modus (wie viel Hilfe der User bekommt) ===
     if role == "closer":
@@ -2872,6 +2868,7 @@ def render_chat_screen():
     _persona_emoji = {"F": "🎯", "O": "🤝", "R": "🧘", "M": "🔍"}.get(persona.get("form_type", ""), "👤")
     _grad = persona.get("difficulty", 1)
     _diff_class = "cc-diff-easy" if _grad <= 2 else ("cc-diff-med" if _grad == 3 else "cc-diff-hard")
+    _grad_label_header = persona.get("grad_label", "")
     st.markdown(
         f'<div class="cc-timer-header" style="margin-top:8px;">'
         f'  <div class="cc-timer-persona">'
@@ -2879,7 +2876,7 @@ def render_chat_screen():
         f'    <div>'
         f'      <div class="cc-timer-name">{persona["name"]} · {persona.get("alter", "")}</div>'
         f'      <div style="font-size:11px; color:{TEXT_TERTIARY}; display:inline-flex; align-items:center; gap:6px;">'
-        f'        <span class="cc-diff-dot {_diff_class}"></span> {title_role} · Zelle {persona.get("form_type", "?")}{_grad}'
+        f'        <span class="cc-diff-dot {_diff_class}"></span> {_grad_label_header}'
         f'      </div>'
         f'    </div>'
         f'  </div>'
