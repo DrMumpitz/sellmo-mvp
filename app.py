@@ -2359,7 +2359,7 @@ PHASE_DEFINITIONS = [
 
 def render_phase_bar():
     persona = st.session_state.persona
-    show_pre0 = persona and persona["persona_flag"] in ("wuetend", "wuetender", "trauma")
+    show_pre0 = bool(persona) and persona.get("persona_flag") in ("wuetend", "wuetender", "trauma")
     current = str(st.session_state.current_phase) if st.session_state.current_phase is not None else None
     visited = set(str(p) for p in st.session_state.phase_history)
 
