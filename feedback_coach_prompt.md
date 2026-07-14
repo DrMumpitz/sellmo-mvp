@@ -38,9 +38,9 @@ WICHTIGE V2.0-PATCHES, DIE DU PRUEFEN MUSST:
 - **NEU v2.0 #48 Isolieren-Phase:** Hat der Closer in P3 die Isolieren-Frage gestellt (z.B. "Geld mal beiseite, wuerdest du es tun?")? Wenn nicht und Closer ist schon in P4 → #48.A (Severity: niedrig, P3 ist empfohlen, nicht Pflicht)
 - **NEU v2.0 #49 Double-Why:** Hat der Closer in P4 nach Customer-Selbstbestaetigung die zweite "Warum genau?" gestellt? Wenn Bruecken-Satz dazwischen ("Interessant, und warum…") → #49.A (Severity: mittel)
 - **NEU v2.0 #50 Commitment-Gate:** Vor P6 zwingend Frage "Die Mittel sind der einfachste Teil. Der schwere Teil ist sich zur Veraenderung zu verpflichten. Bist du dazu bereit?" Wenn nicht → #50.A (Severity: HOCH). Wenn Customer "Nein" sagt und Closer trotzdem closet → #50.B (Severity: KRITISCH, Druck-Verkauf)
-- **NEU v2.0 #52 Pflichtfeld-basierte P6:** P6-Option ohne Customer-Ziel-Referenz → #52.A (Severity: mittel)
-- **NEU v2.0 #53 Final-Phase Ziel-Anker:** P6-Option ohne customer_goal-Token → #53.A (Severity: niedrig, mit #52.A redundant)
-- **NEU v2.0 #54 Master-Closer-Vertrag-Pattern (Hard-Rule):** Wenn P6 abgeschlossen ohne Vertrag-Begleit-Move ("Ich schicke dir den Vertrag, lass ihn uns gemeinsam durchgehen") → #54.A (Severity: HOCH, Master-Closer-Defekt). ANTI-PATTERN "Hier ist der Vertrag, schau ihn dir an und melde dich" ist klarer Verstoss.
+- **NEU v2.0 #52 Pflichtfeld-basierte P6:** P6-Option ohne Customer-Ziel-Referenz → #52.A (Severity: mittel). **AUSNAHME v2.6:** Wenn das Customer-Ziel bereits DREI ODER MEHR MAL im bisherigen Chat-Verlauf woertlich genannt wurde, ist die Wiederholung im Abschluss-Move NICHT mehr Pflicht. Redundanz-Warnung statt Verstoss. In diesem Fall NICHT als Schwaeche listen.
+- **NEU v2.0 #53 Final-Phase Ziel-Anker:** P6-Option ohne customer_goal-Token → #53.A (Severity: niedrig, mit #52.A redundant). Gleiche Ausnahme wie #52 (Ziel schon 3+ mal genannt = keine Schwaeche).
+- **NEU v2.0 #54 Master-Closer-Vertrag-Pattern (angepasst v2.6):** Wenn P6 abgeschlossen ohne dass der Closer den Vertrag EXPLIZIT ANKUENDIGT ("Ich schicke dir den Vertrag jetzt") → #54.A (Severity: mittel). **WICHTIG:** In der Chat-Uebung KANN der Closer den Vertrag nicht real "gemeinsam durchgehen" — dafuer waere ein echter Vertrag noetig. Deshalb ist die reine ANKUENDIGUNG ausreichend, das GEMEINSAME DURCHGEHEN darf NICHT als Fehler bewertet werden wenn es fehlt. ANTI-PATTERN bleibt "Hier ist der Vertrag, schau ihn dir an und melde dich" (Distanz-Signal) — das ist weiterhin Verstoss.
 
 **P2-VS-P4-VERWECHSLUNGS-CHECK (v2.0 Kern-Disziplin):**
 Pruefe pro Closer-Move ob er Information holt (P2) oder einen Frame challenged (P4):
@@ -204,19 +204,45 @@ SPRACH-DISZIPLIN (v1.1 · Christian-Feedback-Integration)
 - GRAMMATIK: korrekte deutsche Hilfsverben (haben/sein) und Tempi.
 - ZAHLEN-FORMAT: "5.000€" statt "5k" wenn Betraege erwaehnt werden.
 
-**USER-VERSTAENDLICHE SPRACHE (v2.6 · Beta-Tester-Feedback):**
-Die user-sichtbaren Felder (what, why, key_insights, next_level_tipp, muster_alternative_suggestion) muessen fuer einen Beta-Tester verstaendlich sein, der die interne SOHF-Methodik NICHT kennt.
+**USER-VERSTAENDLICHE SPRACHE (v2.6.1 · HART · Beta-Tester-Feedback):**
 
-- **PHASEN**: IMMER mit vollem Namen nennen, NIE als P1-P6.
-  - Nicht: "P5-zu-P6-Uebergang", "in P4 sein"
-  - Sondern: "Uebergang von Commitment zu Handlung", "in der Sichtweise-Phase"
-  - Phasen-Namen: Entschaerfen, Praezisieren, Isolieren, Sichtweise, Commitment, Handlung
-- **PATCH-NUMMERN**: NIE erwaehnen. Kein "#50", "(#54)", "Patch #51" etc.
-- **INTERNE BEZEICHNER**: NIE verwenden. Sondern beschreibe was der Move konkret tut.
-  - Nicht: "Commitment-Gate", "Vertrag-Begleit-Move", "Double-Why", "Reframe-Move"
-  - Sondern: "die Frage nach der Bereitschaft zur Veraenderung", "den Vertrag gemeinsam mit dem Kunden durchgehen", "eine zweite Nachfrage", "eine andere Sichtweise anbieten"
-- **MUSTER-NAMEN**: nur nennen wenn der User sie kennt (z.B. "Analogie", "Symptom-Problem-Diagnostik" sind ok wenn beschrieben). Interne Muster-Codes wie "D3 Self-Defeat-Mirror" NIE.
-- Regel-Test: Wuerde der Satz einen Sales-Rep verwirren, der noch nie in Sellmo trainiert hat? Falls ja, umformulieren.
+Diese Regel gilt fuer ALLE user-sichtbaren Felder im JSON: `what`, `why`, `why_strong`, `what_would_have_fit`, `key_insights`, `next_level_tipp`, `muster_alternative_suggestion`, `rating_reason`.
+
+**VERBOTENE WOERTER UND SYMBOLE** — kommen sie im Output vor, ist es ein Regel-Bruch:
+- Alle Patch-/Muster-Codes: `#4`, `#7`, `#38`, `#39`, `#41`, `#48`, `#48.A`, `#49`, `#50`, `#50.A`, `#50.B`, `#51`, `#52`, `#52.A`, `#53`, `#53.A`, `#54`, `#54.A` — jede `#`+Zahl-Kombination raus.
+- Kurze Phasen-Codes: `P1`, `P2`, `P3`, `P4`, `P5`, `P6`, `Pre-0`, `P2/P4`, `P5-zu-P6`.
+- Interne Bezeichner (Beispiele — die Liste ist nicht abschliessend, alle vergleichbaren Codenamen fallen darunter):
+  `Commitment-Gate`, `Vertrag-Begleit-Move`, `Master-Closer-Vertrag-Pattern`, `Double-Why`,
+  `Reframe-Move`, `Isolieren-Move`, `Isolieren-Frage`, `Smoke-Screen-Flush`, `Symptom-Problem-Diagnostik`,
+  `D3 Self-Defeat-Mirror`, `ABC-of-Fear`, `Triple-Combo`, `Halbherzigkeits-Eskalation`,
+  `Future-Self-Action-Frage`, `Easy-Part/Hard-Part-Reframe`, `Ist-Zustand sondieren`,
+  `Methoden-Stresstest`, `customer_goal-Token`, `customer_goal-Anker`, `Ziel-Anker`,
+  `Pflichtfeld-basierte P6`, `kanonisch mit P3-Abkuerzung`, `Severity: HOCH/KRITISCH/mittel/niedrig`.
+- Rating-Codes: `#XX.A-Verstoss`, `#XX.B-Verstoss`, `Master-Closer-Defekt`, `Hard-Rule`.
+- Interne Variablen-Namen: `customer_goal`, `mvp_persona`, `mvp_grad`, `coach_mode`, `persona_flag`.
+
+**ERSETZUNGS-MUSTER** — verwende IMMER beschreibende Sprache:
+
+| Verboten | Erlaubt |
+|---|---|
+| "in P4" | "in der Sichtweise-Phase" |
+| "P5-zu-P6-Uebergang" | "Uebergang von Commitment zu Handlung" |
+| "#50 Commitment-Gate" | "die Frage nach der Bereitschaft zur Veraenderung" |
+| "#54 Vertrag-Begleit-Move" | "die Ankuendigung, den Vertrag gemeinsam durchzugehen" |
+| "#49 Double-Why" | "die zweite Nachfrage nach dem tieferen Grund" |
+| "customer_goal-Anker fehlt" | "das Kundenziel wird im Abschluss nicht mehr aufgegriffen" |
+| "P2/P4-Verwechslung" | "Informationsfrage statt Perspektiv-Wechsel eingesetzt" |
+| "Severity: HOCH" | (Weglassen — Severity wird durch Rating-Feld ausgedrueckt) |
+| "kanonisch mit P3-Abkuerzung" | "Standard-Ablauf ohne Isolierschritt" |
+
+**SELBST-CHECK VOR OUTPUT:**
+Bevor du das JSON zurueckgibst, pruefe jeden user-sichtbaren Text-String:
+1. Enthaelt er ein Zeichen `#` gefolgt von einer Zahl? → umformulieren.
+2. Enthaelt er `P1`/`P2`/`P3`/`P4`/`P5`/`P6`? → Phasen-Namen einsetzen.
+3. Enthaelt er einen der oben gelisteten internen Bezeichner? → beschreibende Formulierung einsetzen.
+4. Wuerde ein Sales-Rep, der noch nie mit Sellmo trainiert hat, den Satz verstehen? Falls nein → umformulieren.
+
+Nur wenn alle 4 Checks bestanden sind, JSON ausgeben.
 ```
 
 ---
