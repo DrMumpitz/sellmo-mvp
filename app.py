@@ -2832,18 +2832,6 @@ def render_setup_screen():
 def render_chat_screen():
     role = st.session_state.role
     persona = st.session_state.persona
-    # DEBUG · Beta-Diagnose (temporär): zeigt State-Werte in Sidebar-Footer
-    with st.sidebar:
-        _cm = st.session_state.get("coach_mode", "<MISSING>")
-        _fm = st.session_state.get("feedback_mode", "<MISSING>")
-        st.markdown(
-            f'<div style="font-size:10px; color:{TEXT_TERTIARY}; margin-top:8px; '
-            f'padding:6px 8px; background:{SURFACE_2}; border-radius:6px; '
-            f'font-family:monospace;">'
-            f'DEBUG · coach_mode={_cm} · feedback_mode={_fm} · role={role}'
-            f'</div>',
-            unsafe_allow_html=True
-        )
 
     # Sidebar (automatisch sticky bei Streamlit): Phasen-Leiste + Persona + Buttons
     # BUG-FIX B7 (2026-05-30): Phasen-Leiste als Placeholder, der NACH Coach-Update
@@ -3001,13 +2989,8 @@ def render_chat_screen():
         unsafe_allow_html=True
     )
 
-    # Input
-    if role == "closer":
-        input_placeholder = "Deine Closer-Antwort..."
-    else:
-        input_placeholder = "Deine Reaktion als Kunde..."
-
-    user_input = st.chat_input(input_placeholder)
+    # Input · Placeholder leer, damit Chat-Feld sauber aussieht
+    user_input = st.chat_input("")
     if user_input:
         _process_user_turn(user_input)
         st.rerun()
@@ -3020,30 +3003,30 @@ def _render_phasen_coach_box():
     current_phase = st.session_state.current_phase
     coach_mode = st.session_state.coach_mode
 
-    # Coach-Call wenn nötig (U1-Fix 30.05. + F2a-Fix 31.05.: Vollbild-Overlay statt nur Block)
+    # Coach-Call wenn nötig — schlanke Progress-Line statt Vollbild-Overlay
     if st.session_state.phasen_coach_output is None or \
        st.session_state.phasen_coach_output.get("_for_turn") != st.session_state.turn_count:
         loading_placeholder = st.empty()
-        # F2a-Fix: fixed Overlay ueber gesamten Bildschirm, blendet Hintergrund mit backdrop-filter aus
+        # Subtile indeterminate Progress-Line (kein Modal, kein Blur)
         loading_placeholder.markdown(
-            f'<div style="position:fixed; top:0; left:0; right:0; bottom:0; '
-            f'background: rgba(10, 10, 12, 0.92); backdrop-filter: blur(8px); '
-            f'-webkit-backdrop-filter: blur(8px); z-index:9999; '
-            f'display:flex; align-items:center; justify-content:center;">'
-            f'<div style="background:{SURFACE_2}; border:2px solid {SELLMO_ORANGE}; '
-            f'border-radius:16px; padding:40px 48px; max-width:480px; '
-            f'text-align:center; box-shadow: 0 8px 48px rgba(51, 232, 142, 0.30);">'
-            f'<div style="font-size:20px; font-weight:600; color:{TEXT_PRIMARY}; '
-            f'margin-bottom:12px;">Coach denkt nach</div>'
-            f'<div style="font-size:13px; color:{TEXT_SECONDARY}; margin-bottom:20px;">'
-            f'Analysiert die letzte Antwort und sucht den optimalen Move (5-10 Sekunden)</div>'
-            f'<div class="loading-dots" style="font-size:28px; color:{SELLMO_ORANGE}; '
-            f'letter-spacing:6px;">● ● ●</div>'
-            f'</div>'
+            f'<div style="margin: 12px 0 8px; padding: 10px 14px; '
+            f'background: {SURFACE_1}; border: 1px solid {BORDER_DEFAULT}; '
+            f'border-radius: 10px; display: flex; align-items: center; gap: 12px;">'
+            f'  <div style="font-size: 13px; color: {TEXT_SECONDARY}; flex-shrink: 0;">'
+            f'    Coach analysiert…</div>'
+            f'  <div style="flex: 1; height: 3px; background: rgba(255,255,255,0.10); '
+            f'       border-radius: 2px; overflow: hidden; position: relative;">'
+            f'    <div class="cc-progress-slide" style="position: absolute; top: 0; left: 0; '
+            f'         height: 100%; width: 40%; background: {ACCENT_PRIMARY}; '
+            f'         border-radius: 2px;"></div>'
+            f'  </div>'
             f'</div>'
             f'<style>'
-            f'@keyframes pulse-dots {{ 0%, 100% {{ opacity: 0.3; }} 50% {{ opacity: 1; }} }}'
-            f'.loading-dots {{ animation: pulse-dots 1.4s ease-in-out infinite; }}'
+            f'@keyframes cc-slide {{ '
+            f'  0% {{ left: -40%; }} '
+            f'  100% {{ left: 100%; }} '
+            f'}}'
+            f'.cc-progress-slide {{ animation: cc-slide 1.4s ease-in-out infinite; }}'
             f'</style>',
             unsafe_allow_html=True
         )
@@ -3053,7 +3036,7 @@ def _render_phasen_coach_box():
             customer_goal=st.session_state.get("customer_goal"),
             programm_info=st.session_state.get("programm_info")
         )
-        loading_placeholder.empty()  # Loading-Block verschwindet, sobald Coach geliefert hat
+        loading_placeholder.empty()  # Progress-Line verschwindet nach Coach-Response
         st.session_state.total_cost_eur += cost
         if "error" not in coach_output:
             coach_output["_for_turn"] = st.session_state.turn_count
