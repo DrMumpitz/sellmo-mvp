@@ -2436,15 +2436,15 @@ def render_setup_screen():
     )
 
     # === 2. Persona (MVP-Matrix v1.0 · 4 Kundentypen) ===
-    st.markdown("### Welchen Kundentyp spielst du gegen?")
+    st.markdown("### Gegen welchen Kundentyp trainierst du?")
     mvp_persona = st.segmented_control(
         " ",
         options=["F", "O", "R", "M"],
         format_func=lambda x: {
-            "F": f"F · {MVP_PERSONAS['F']['name']} · {MVP_PERSONAS['F']['kurz']}",
-            "O": f"O · {MVP_PERSONAS['O']['name']} · {MVP_PERSONAS['O']['kurz']}",
-            "R": f"R · {MVP_PERSONAS['R']['name']} · {MVP_PERSONAS['R']['kurz']}",
-            "M": f"M · {MVP_PERSONAS['M']['name']} · {MVP_PERSONAS['M']['kurz']}",
+            "F": f"{MVP_PERSONAS['F']['name']} · {MVP_PERSONAS['F']['kurz']}",
+            "O": f"{MVP_PERSONAS['O']['name']} · {MVP_PERSONAS['O']['kurz']}",
+            "R": f"{MVP_PERSONAS['R']['name']} · {MVP_PERSONAS['R']['kurz']}",
+            "M": f"{MVP_PERSONAS['M']['name']} · {MVP_PERSONAS['M']['kurz']}",
         }[x],
         selection_mode="single",
         default="F",
