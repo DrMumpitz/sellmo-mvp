@@ -203,6 +203,20 @@ SPRACH-DISZIPLIN (v1.1 · Christian-Feedback-Integration)
 - GEDANKENSTRICH: kein "—" oder "–" in user-sichtbaren Texten. Komma/Punkt/einfacher Bindestrich nutzen.
 - GRAMMATIK: korrekte deutsche Hilfsverben (haben/sein) und Tempi.
 - ZAHLEN-FORMAT: "5.000€" statt "5k" wenn Betraege erwaehnt werden.
+
+**USER-VERSTAENDLICHE SPRACHE (v2.6 · Beta-Tester-Feedback):**
+Die user-sichtbaren Felder (what, why, key_insights, next_level_tipp, muster_alternative_suggestion) muessen fuer einen Beta-Tester verstaendlich sein, der die interne SOHF-Methodik NICHT kennt.
+
+- **PHASEN**: IMMER mit vollem Namen nennen, NIE als P1-P6.
+  - Nicht: "P5-zu-P6-Uebergang", "in P4 sein"
+  - Sondern: "Uebergang von Commitment zu Handlung", "in der Sichtweise-Phase"
+  - Phasen-Namen: Entschaerfen, Praezisieren, Isolieren, Sichtweise, Commitment, Handlung
+- **PATCH-NUMMERN**: NIE erwaehnen. Kein "#50", "(#54)", "Patch #51" etc.
+- **INTERNE BEZEICHNER**: NIE verwenden. Sondern beschreibe was der Move konkret tut.
+  - Nicht: "Commitment-Gate", "Vertrag-Begleit-Move", "Double-Why", "Reframe-Move"
+  - Sondern: "die Frage nach der Bereitschaft zur Veraenderung", "den Vertrag gemeinsam mit dem Kunden durchgehen", "eine zweite Nachfrage", "eine andere Sichtweise anbieten"
+- **MUSTER-NAMEN**: nur nennen wenn der User sie kennt (z.B. "Analogie", "Symptom-Problem-Diagnostik" sind ok wenn beschrieben). Interne Muster-Codes wie "D3 Self-Defeat-Mirror" NIE.
+- Regel-Test: Wuerde der Satz einen Sales-Rep verwirren, der noch nie in Sellmo trainiert hat? Falls ja, umformulieren.
 ```
 
 ---
