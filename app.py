@@ -2832,6 +2832,18 @@ def render_setup_screen():
 def render_chat_screen():
     role = st.session_state.role
     persona = st.session_state.persona
+    # DEBUG · Beta-Diagnose (temporär): zeigt State-Werte in Sidebar-Footer
+    with st.sidebar:
+        _cm = st.session_state.get("coach_mode", "<MISSING>")
+        _fm = st.session_state.get("feedback_mode", "<MISSING>")
+        st.markdown(
+            f'<div style="font-size:10px; color:{TEXT_TERTIARY}; margin-top:8px; '
+            f'padding:6px 8px; background:{SURFACE_2}; border-radius:6px; '
+            f'font-family:monospace;">'
+            f'DEBUG · coach_mode={_cm} · feedback_mode={_fm} · role={role}'
+            f'</div>',
+            unsafe_allow_html=True
+        )
 
     # Sidebar (automatisch sticky bei Streamlit): Phasen-Leiste + Persona + Buttons
     # BUG-FIX B7 (2026-05-30): Phasen-Leiste als Placeholder, der NACH Coach-Update
