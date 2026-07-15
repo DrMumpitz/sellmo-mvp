@@ -1,7 +1,7 @@
 """
 Sellmo MVP Trainings-App · Einwandbehandlung Textform · v0.2
 ============================================================
-Single-File Streamlit-App fuer das Ueben von Einwandbehandlung.
+Single-File Streamlit-App für das Üben von Einwandbehandlung.
 
 Features v0.2 (Pfad A):
 - Rollen-Wahl: Closer (Default) oder Customer
@@ -97,7 +97,7 @@ CAT_URGENCY_FILL = "#3D1E0F";    CAT_URGENCY_BORDER = "#C86732"
 # ============================================================
 
 def load_users_config():
-    """Laedt users.yaml. Gibt None zurueck wenn nicht vorhanden (= Auth-disabled-Modus)."""
+    """Lädt users.yaml. Gibt None zurück wenn nicht vorhanden (= Auth-disabled-Modus)."""
     if not AUTH_AVAILABLE:
         return None
     if not USERS_FILE.exists():
@@ -107,7 +107,7 @@ def load_users_config():
 
 
 def save_users_config(config):
-    """Persistiert Aenderungen an users.yaml (z.B. avv_accepted-Flag)."""
+    """Persistiert Änderungen an users.yaml (z.B. avv_accepted-Flag)."""
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         yaml.dump(config, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
@@ -137,8 +137,8 @@ def render_avv_consent_screen(authenticator, username, config):
     st.markdown("# Datenschutz-Akzeptanz")
     st.markdown(
         f'<div style="color:#94a3b8; font-size:14px; margin-bottom: 16px;">'
-        f'Bevor du Sellmo nutzen kannst, brauchen wir deine ausdrueckliche Einwilligung '
-        f'zur Verarbeitung deiner Trainings-Daten gemaess unserer Datenschutz-Hinweise.'
+        f'Bevor du Sellmo nutzen kannst, brauchen wir deine ausdrückliche Einwilligung '
+        f'zur Verarbeitung deiner Trainings-Daten gemäß unserer Datenschutz-Hinweise.'
         f'</div>',
         unsafe_allow_html=True
     )
@@ -148,8 +148,8 @@ def render_avv_consent_screen(authenticator, username, config):
     st.markdown("---")
     accepted = st.checkbox(
         "Ich habe die Datenschutz-Hinweise gelesen und akzeptiere die Verarbeitung "
-        "meiner Trainings-Daten gemaess AVV mit Anthropic (Cross-Border-Routing USA) "
-        "sowie die Speicherung bei Streamlit Cloud waehrend der Closed-Alpha-Phase.",
+        "meiner Trainings-Daten gemäß AVV mit Anthropic (Cross-Border-Routing USA) "
+        "sowie die Speicherung bei Streamlit Cloud während der Closed-Alpha-Phase.",
         key="avv_consent_checkbox"
     )
 
@@ -287,13 +287,13 @@ def _render_closed_alpha_landing(authenticator):
         f'    <div class="lp-steps-grid">'
         f'      <div class="lp-step">'
         f'        <div class="lp-step-num">01</div>'
-        f'        <h3 class="lp-step-title">Customer-Typ wählen</h3>'
+        f'        <h3 class="lp-step-title">Kunden-Typ wählen</h3>'
         f'        <p class="lp-step-body">4 Kundentypen — Fokussiert, Offen, Ruhig, Methodisch — in 5 Schwierigkeitsstufen von Kooperativ bis Endgegner. Wahl per Klick.</p>'
         f'      </div>'
         f'      <div class="lp-step">'
         f'        <div class="lp-step-num">02</div>'
         f'        <h3 class="lp-step-title">Sparring starten</h3>'
-        f'        <p class="lp-step-body">Du gehst in einen realistischen Sales-Dialog. Die KI spielt den Customer authentisch.</p>'
+        f'        <p class="lp-step-body">Du gehst in einen realistischen Sales-Dialog. Die KI spielt den Kunden authentisch.</p>'
         f'      </div>'
         f'      <div class="lp-step">'
         f'        <div class="lp-step-num">03</div>'
@@ -358,7 +358,7 @@ def _render_closed_alpha_landing(authenticator):
         f'          </div>'
         f'        </div>'
         f'        <h3 class="lp-usecase-title">Skill-Gaps sichtbar machen</h3>'
-        f'        <p class="lp-usecase-body">Pro Customer-Typ siehst du, wo du stark bist und wo du noch Lücken hast. Kein Bauchgefühl, sondern Mastery-Daten.</p>'
+        f'        <p class="lp-usecase-body">Pro Kunden-Typ siehst du, wo du stark bist und wo du noch Lücken hast. Kein Bauchgefühl, sondern Mastery-Daten.</p>'
         f'      </div>'
         # Card 4: Methodik-Stack
         f'      <div class="lp-usecase-card">'
@@ -387,7 +387,7 @@ def _render_closed_alpha_landing(authenticator):
         f'    <p class="lp-section-body" style="margin:0 auto; max-width:680px; text-align:center;">'
         f'Fokussiert, Offen, Ruhig, Methodisch — und jeden davon in fünf Schwierigkeitsstufen von Kooperativ bis Endgegner. '
         f'Egal welcher Typ in den Call kommt, du weißt was zu tun ist. Die Mechanik ist verinnerlicht. '
-        f'Deine Abschluss-Quote steigt messbar — und du kannst pro Customer-Konstellation sagen, '
+        f'Deine Abschluss-Quote steigt messbar — und du kannst pro Kunden-Konstellation sagen, '
         f'an welcher methodischen Stelle du wackelst.</p>'
         f'  </div>'
         f'</div>',
@@ -474,40 +474,80 @@ def render_beta_token_gate():
     if isinstance(query_token, list):
         query_token = query_token[0] if query_token else ""
 
+    # Retry-Flow: Falls User im Retry-Input einen Token eingegeben hat, spiegele ihn in query_params
+    retry_token = (st.session_state.get("_beta_token_retry") or "").strip()
+    if retry_token and not query_token:
+        query_token = retry_token
+
     if query_token and query_token in valid_tokens:
         # Token OK → App startet
         # AVV-akzeptiert wird impliziert (Tester haben Beta-Vereinbarung separat)
+        # Persistiere in URL, damit Reload/Share funktioniert
+        try:
+            if st.query_params.get("k", "") != query_token:
+                st.query_params["k"] = query_token
+        except Exception:
+            pass
         return ({"_beta_mode": True, "token": query_token}, f"beta_{query_token[-4:]}", "Beta-Tester")
 
-    # Kein / falscher Token → Zugangs-Screen
+    # Kein / falscher Token → Zugangs-Screen mit Retry-Input
+    attempted = bool(query_token)  # User hat's schon versucht (URL oder Retry-Input)
+    headline = "Token ungültig" if attempted else "Kein gültiger Beta-Token"
+    sub_msg = (
+        "Der Token wurde nicht erkannt. Prüfe Groß-/Kleinschreibung oder gib ihn unten neu ein."
+        if attempted
+        else "Du brauchst einen persönlichen Beta-Link von Christian."
+    )
+
     st.markdown(
-        f'<div style="max-width: 480px; margin: 80px auto; padding: 40px 24px; text-align: center;">'
+        f'<div style="max-width: 480px; margin: 80px auto 20px; padding: 40px 24px 8px; text-align: center;">'
         f'  <div style="width: 88px; height: 88px; margin: 0 auto 24px; border-radius: 50%; '
         f'       background: radial-gradient(circle at 50% 40%, {ACCENT_SUBTLE}, #000 70%); '
         f'       display: grid; place-items: center; font-size: 40px;">🎯</div>'
         f'  <div style="font-weight: 800; font-size: 28px; letter-spacing: -0.02em; margin-bottom: 8px;">'
         f'    sell<span style="color: {ACCENT_PRIMARY};">mo</span></div>'
-        f'  <div style="color: {TEXT_SECONDARY}; font-size: 14px; margin-bottom: 32px;">Beta-Preview · Zugang benötigt</div>'
+        f'  <div style="color: {TEXT_SECONDARY}; font-size: 14px; margin-bottom: 24px;">Beta-Preview · Zugang benötigt</div>'
         f'  <div style="background: {SURFACE_1}; border: 1px solid {BORDER_DEFAULT}; border-radius: 14px; '
         f'       padding: 20px 24px; text-align: left;">'
         f'    <div style="font-size: 15px; color: {TEXT_PRIMARY}; margin-bottom: 12px; font-weight: 600;">'
-        f'      Kein gültiger Beta-Token</div>'
+        f'      {headline}</div>'
         f'    <div style="font-size: 13px; color: {TEXT_SECONDARY}; line-height: 1.5;">'
-        f'      Du brauchst einen persönlichen Beta-Link von Christian. Wenn Du einen hast: '
-        f'      Link direkt aufrufen (mit <code style="background:{SURFACE_2}; padding:1px 4px; '
-        f'      border-radius:3px; font-size:11px;">?k=…</code> am Ende).<br><br>'
-        f'      Kein Link? Schreib an <a href="mailto:christian@sellmo.io?subject=Sellmo%20Beta-Zugang" '
-        f'      style="color: {ACCENT_PRIMARY};">christian@sellmo.io</a>.'
+        f'      {sub_msg}'
         f'    </div>'
         f'  </div>'
         f'</div>',
         unsafe_allow_html=True
     )
+
+    # Retry-Input direkt unter der Fehler-Card
+    col_l, col_c, col_r = st.columns([1, 3, 1])
+    with col_c:
+        with st.form("beta_token_retry_form", clear_on_submit=False):
+            new_token = st.text_input(
+                "Token eingeben",
+                value="",
+                placeholder="SELLMO-BETA-XXXXXX",
+                label_visibility="collapsed",
+                key="_beta_token_input",
+            )
+            submitted = st.form_submit_button("Token einlösen", type="primary", use_container_width=True)
+        if submitted:
+            st.session_state._beta_token_retry = new_token.strip()
+            st.rerun()
+
+        st.markdown(
+            f'<div style="text-align:center; color:{TEXT_TERTIARY}; font-size:12px; margin-top:16px;">'
+            f'Kein Token? Schreib an '
+            f'<a href="mailto:christian@sellmo.io?subject=Sellmo%20Beta-Zugang" '
+            f'style="color:{ACCENT_PRIMARY}; text-decoration:none;">christian@sellmo.io</a>.'
+            f'</div>',
+            unsafe_allow_html=True
+        )
     return (None, None, None)
 
 
 def render_login_wall():
-    """Login-Wall: rendert Login-Form, gibt (config, username, name) zurueck wenn eingeloggt + AVV akzeptiert.
+    """Login-Wall: rendert Login-Form, gibt (config, username, name) zurück wenn eingeloggt + AVV akzeptiert.
     Returns (None, None, None) wenn Login noch nicht abgeschlossen — Caller soll dann abbrechen.
     """
     config = load_users_config()
@@ -516,7 +556,7 @@ def render_login_wall():
         st.warning(
             "Auth nicht konfiguriert (`users.yaml` fehlt). "
             "App läuft im Entwicklungs-Modus ohne Login. "
-            "Fuer Closed-Alpha: `cp users.yaml.example users.yaml` und Test-User anlegen."
+            "Für Closed-Alpha: `cp users.yaml.example users.yaml` und Test-User anlegen."
         )
         return ({"_dev_mode": True}, "dev", "Entwickler-Modus")
 
@@ -543,7 +583,7 @@ def render_login_wall():
         render_avv_consent_screen(authenticator, username, config)
         return (None, None, None)
 
-    # Vollstaendig eingeloggt + AVV akzeptiert
+    # Vollständig eingeloggt + AVV akzeptiert
     return (authenticator, username, name)
 
 
@@ -603,7 +643,7 @@ CLOSER_BOT_PROMPT = load_prompt(str(CLOSER_BOT_PROMPT_FILE))
 # ============================================================
 
 MVP_PERSONAS = {
-    "F": {"name": "Lukas", "alter": 34, "job": "Selbstaendiger Solo-Berater",
+    "F": {"name": "Lukas", "alter": 34, "job": "Selbständiger Solo-Berater",
           "kern_einwand_kategorie": "Geld", "kurz": "Fokussiert",
           "avatar_bg": "#EEEDFE", "avatar_fg": "#26215C"},
     "O": {"name": "Niklas", "alter": 29, "job": "Angestellter Sales-Aufsteiger",
@@ -650,7 +690,7 @@ MVP_OPENING_EINWAENDE = {
 
 
 def build_mvp_persona(form_type: str, grad: int) -> dict:
-    """Konstruiert ein Persona-Dict fuer die aktuelle MVP-Zelle (form_type x grad)."""
+    """Konstruiert ein Persona-Dict für die aktuelle MVP-Zelle (form_type x grad)."""
     base = MVP_PERSONAS[form_type]
     grad_entry = next(g for g in MVP_GRADE if g["key"] == grad)
     return {
@@ -982,7 +1022,7 @@ CUSTOM_CSS = f"""
         border-top: 1px solid {BORDER_DEFAULT};
     }}
 
-    /* Pain-Hero: fast volle Viewport-Hoehe (PAGE-OPENER), vertikal zentriert */
+    /* Pain-Hero: fast volle Viewport-Höhe (PAGE-OPENER), vertikal zentriert */
     /* Direkt nach Top-Nav — kein border-top (Nav hat schon border-bottom) */
     .lp-pain-hero {{
         min-height: calc(100vh - 100px);
@@ -2170,13 +2210,19 @@ def call_phasen_coach(persona, conversation_history, current_phase, mode,
         return {"error": str(e)}, 0.0
 
 
-def call_feedback_coach(last_user_utterance, conversation_history, persona, mode, evaluating_role="closer"):
+def call_feedback_coach(last_user_utterance, conversation_history, persona, mode,
+                         evaluating_role="closer", phasen_coach_context=None):
     """
     Feedback-Coach bewertet methodisch.
     evaluating_role: "closer" (default) — User-Closer-Aussagen bewertet
                      "ai_closer" — KI-Closer-Aussagen werden bewertet (Customer-Modus)
+    phasen_coach_context (v2.6.3 Cross-Coach-Kohärenz, Punkt 12):
+        optional dict mit chosen_option_correctness, coach_recommendation_hint,
+        coach_recommendation_phase_next. Wird vom Prompt genutzt, um Widersprüche
+        zwischen Phasen-Coach ('richtig') und Feedback-Coach ('methodisch_fehlerhaft')
+        zu unterdrücken; Post-Processing clampt zusätzlich als Belt+Suspenders.
     """
-    user_message = json.dumps({
+    payload = {
         "last_closer_utterance": last_user_utterance,
         "conversation_history": conversation_history,
         "persona_profile": {
@@ -2186,12 +2232,33 @@ def call_feedback_coach(last_user_utterance, conversation_history, persona, mode
             "discovery_summary": persona["discovery_summary"]
         },
         "mode": mode,
-        "evaluating_role": evaluating_role
-    }, ensure_ascii=False)
+        "evaluating_role": evaluating_role,
+    }
+    if phasen_coach_context:
+        payload["phasen_coach_context"] = phasen_coach_context
+    user_message = json.dumps(payload, ensure_ascii=False)
     max_t = MAX_TOKENS_COACH_END if mode == "end_of_call" else MAX_TOKENS_COACH_LIVE
     try:
         raw, cost = _api_call(FEEDBACK_COACH_PROMPT, user_message, max_t, TEMPERATURE_COACH)
-        return json.loads(raw), cost
+        data = json.loads(raw)
+        # Cross-Coach-Kohärenz-Clamp (v2.6.3, Punkt 12): Wenn Phasen-Coach die gewählte
+        # Option als 'richtig' markiert hat, darf Feedback-Rating nicht 'methodisch_fehlerhaft'
+        # sein. Prompt-Regel setzt das primär durch, das hier ist der Sicherheitsgurt.
+        if (phasen_coach_context
+                and phasen_coach_context.get("chosen_option_correctness") == "richtig"
+                and isinstance(data, dict)
+                and data.get("rating") == "methodisch_fehlerhaft"):
+            data["_original_rating"] = "methodisch_fehlerhaft"
+            data["rating"] = "verbesserungswuerdig"
+            data["_cross_coach_clamp"] = True
+            try:
+                _log_event("cross_coach_clamp",
+                           original_rating="methodisch_fehlerhaft",
+                           new_rating="verbesserungswuerdig",
+                           chosen_option_correctness="richtig")
+            except Exception:
+                pass
+        return data, cost
     except json.JSONDecodeError as e:
         return {"error": f"JSON-Parse-Fehler: {e}"}, 0.0
     except Exception as e:
@@ -2204,6 +2271,7 @@ def call_feedback_coach(last_user_utterance, conversation_history, persona, mode
 
 def init_session_state():
     defaults = {
+        "onboarding_done": False,  # Beta-Tester-Onboarding-Screen: einmalig, überspringbar
         "session_started": False,
         "session_ended": False,
         "persona": None,
@@ -2226,7 +2294,7 @@ def init_session_state():
         "last_phase_regression": None,  # These #14: Self-Correction-Banner
         "pricing_info": None,  # These #15: konfigurierbares Pricing
         "customer_goal": None,  # SOHF v2.0 Patch #53: Customer-Ziel Pflichtfeld
-        "programm_info": None,  # NEU 31.05.: vollstaendige Programm-Beschreibung-Spec NEU-4
+        "programm_info": None,  # NEU 31.05.: vollständige Programm-Beschreibung-Spec NEU-4
         "session_log": [],  # Session-Logging-System (30.05. nachmittags): jede Aktion mit Timestamp
         "session_feedback": {},  # Pro markierter Turn: {turn_n: "feedback_text"}
         "session_feedback_global": "",  # Gesamt-Session-Feedback
@@ -2283,8 +2351,8 @@ def _save_session_log_to_file():
         f"**Role:** {role}",
         f"**Coach-Mode:** {coach_mode}",
         f"**Pricing:** {pricing.get('amount', '?')} · {pricing.get('time_per_week', '?')}",
-        f"**Customer-Ziel:** {customer_goal}",
-        f"**Turns:** {st.session_state.get('turn_count', 0)}",
+        f"**Kunden-Ziel:** {customer_goal}",
+        f"**Runden:** {st.session_state.get('turn_count', 0)}",
         f"**Total Cost:** {st.session_state.get('total_cost_eur', 0.0):.4f} EUR",
         "",
         "---",
@@ -2299,7 +2367,7 @@ def _save_session_log_to_file():
         ts = entry.get("timestamp", "?")
         etype = entry.get("type", "?")
         turn_n = entry.get("turn_n", "?")
-        lines.append(f"### Turn {turn_n} · {ts} · `{etype}`")
+        lines.append(f"### Runde {turn_n} · {ts} · `{etype}`")
         for k, v in entry.items():
             if k in ("type", "timestamp", "turn_n"):
                 continue
@@ -2308,7 +2376,7 @@ def _save_session_log_to_file():
                 lines.append(f"- **{k}:**\n```json\n{v_str}\n```")
             else:
                 lines.append(f"- **{k}:** {v}")
-        # Wenn Feedback fuer diesen Turn vorliegt: anhaengen
+        # Wenn Feedback für diesen Turn vorliegt: anhängen
         fb_for_turn = session_feedback.get(str(turn_n))
         if fb_for_turn and etype == "feedback_marker":
             lines.append(f"\n> **Christian-Feedback (markiert):** {fb_for_turn}\n")
@@ -2391,10 +2459,223 @@ def render_phase_bar():
 
 
 # ============================================================
+# ONBOARDING-SCREEN (Beta-Tester · Erst-Kontakt)
+# ============================================================
+
+DEMO_DEFAULTS = {
+    "gesamtkosten_input": "4.800€",
+    "dauer_stunden_input": "40 Stunden",
+    "dauer_wochen_input": "8 Wochen",
+    "umfang_1zu1": True,
+    "umfang_online": True,
+    "umfang_live": True,
+    "umfang_rollenspiele": True,
+    "umfang_freitext_input": "8-Wochen-Closer-Programm mit wöchentlichen Live-Calls, 1:1 Coaching, Rollenspielen und Community-Zugang.",
+    "customer_goal_input": "6.000€/Monat als Closer im High-Ticket-Coaching",
+}
+
+
+def render_onboarding_screen():
+    """Einmaliger Willkommens-Screen für Beta-Tester.
+    Zwei Wege: 'Sofort loslegen' (Demo-Defaults) oder 'Selbst konfigurieren'.
+    """
+    # Wordmark oben
+    st.markdown(
+        f'<div style="text-align:center; margin: 48px 0 8px;">'
+        f'  <div style="font-weight:800; font-size:36px; letter-spacing:-0.02em;">'
+        f'    sell<span style="color:{ACCENT_PRIMARY};">mo</span>'
+        f'  </div>'
+        f'  <div style="color:{TEXT_SECONDARY}; font-size:14px; margin-top:4px;">'
+        f'    Beta-Preview · Willkommen'
+        f'  </div>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+
+    col_l, col_c, col_r = st.columns([1, 3, 1])
+    with col_c:
+        # Headline + Value-Prop
+        st.markdown(
+            f'<div style="text-align:center; margin: 24px 0 32px;">'
+            f'  <div style="font-size:24px; font-weight:700; line-height:1.3; margin-bottom:12px;">'
+            f'    Übe Einwandbehandlung gegen eine KI, die wirklich Kunde spielt.'
+            f'  </div>'
+            f'  <div style="color:{TEXT_SECONDARY}; font-size:15px; line-height:1.55;">'
+            f'    Kein Rollenspiel-Partner nötig, kein Coach im Nacken. '
+            f'    Du sprichst mit einer Persona, bekommst live Hinweise und am Ende eine methodische Analyse.'
+            f'  </div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+        # 3-Schritt-Erklärung
+        step_html = ""
+        for num, title, desc in [
+            ("1", "Kunde wählen", "4 Personas · 5 Schwierigkeitsgrade — vom Kooperativen bis zum Endgegner."),
+            ("2", "Verkaufen", "Chat mit der KI. Auf Wunsch mit Coach-Hinweisen und 3 Antwort-Optionen."),
+            ("3", "Auswertung", "Score, Stärken, Potenziale und ein konkreter Trainings-Tipp für die nächste Runde."),
+        ]:
+            step_html += (
+                f'<div style="display:flex; gap:16px; align-items:flex-start; padding:16px; '
+                f'  background:{SURFACE_1}; border:1px solid {BORDER_DEFAULT}; border-radius:12px; margin-bottom:10px;">'
+                f'  <div style="width:32px; height:32px; border-radius:50%; background:{ACCENT_SUBTLE}; '
+                f'    color:{ACCENT_PRIMARY}; display:grid; place-items:center; font-weight:700; flex-shrink:0;">'
+                f'    {num}'
+                f'  </div>'
+                f'  <div>'
+                f'    <div style="font-weight:600; font-size:15px; margin-bottom:4px;">{title}</div>'
+                f'    <div style="color:{TEXT_SECONDARY}; font-size:13px; line-height:1.45;">{desc}</div>'
+                f'  </div>'
+                f'</div>'
+            )
+        st.markdown(f'<div style="margin-bottom:24px;">{step_html}</div>', unsafe_allow_html=True)
+
+        # Dauer-Hinweis + Datenschutz-Micro
+        st.markdown(
+            f'<div style="text-align:center; color:{TEXT_TERTIARY}; font-size:12px; margin-bottom:24px;">'
+            f'  Dauer pro Session: 10–20 Min · Chats werden ausschließlich für dein Feedback protokolliert.'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+        # Primary-Button: Sofort loslegen
+        if st.button(
+            "Sofort loslegen (mit Beispiel-Programm)",
+            type="primary",
+            use_container_width=True,
+            key="onboarding_start_demo"
+        ):
+            # Demo-Defaults in Widget-State-Keys eintragen, damit Setup-Screen ausgefüllt ist
+            for k, v in DEMO_DEFAULTS.items():
+                st.session_state[k] = v
+            st.session_state.onboarding_done = True
+            st.rerun()
+
+        # Sekundär-Link: Selbst konfigurieren
+        st.markdown(
+            f'<div style="text-align:center; margin-top:12px;">'
+            f'  <span style="color:{TEXT_TERTIARY}; font-size:13px;">oder</span>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+        if st.button(
+            "Ich konfiguriere selbst (eigenes Programm)",
+            use_container_width=True,
+            key="onboarding_configure_self"
+        ):
+            st.session_state.onboarding_done = True
+            st.rerun()
+
+
+# ============================================================
 # SETUP-SCREEN
 # ============================================================
 
+def _load_recent_session_scores(n=3):
+    """Parst die letzten n Session-Log-Files aus ../Feedback/session_*.md und
+    extrahiert (timestamp_str, percentage, overall_rating).
+    Rückgabe: chronologisch aufsteigend (älteste zuerst).
+    """
+    import re as _re
+    feedback_dir = APP_DIR.parent / "Feedback"
+    if not feedback_dir.exists():
+        return []
+    files = sorted(
+        feedback_dir.glob("session_*.md"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )[:n]
+    scores = []
+    for f in files:
+        try:
+            content = f.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        match = _re.search(r"## End-of-Call-Auswertung.*?```json\s*(\{.*?\})\s*```", content, _re.DOTALL)
+        if not match:
+            continue
+        try:
+            report = json.loads(match.group(1))
+        except Exception:
+            continue
+        pct = report.get("methodisch_valide_quote", {}).get("percentage")
+        rating = report.get("overall_rating", "")
+        if pct is None:
+            continue
+        # Timestamp aus Filename: session_20260714_180523.md
+        ts_match = _re.search(r"session_(\d{8}_\d{6})", f.name)
+        ts_str = ts_match.group(1) if ts_match else f.stem
+        scores.append({
+            "ts": ts_str,
+            "pct": int(pct),
+            "rating": rating,
+        })
+    return list(reversed(scores))  # älteste → neueste
+
+
+def _render_retention_bar():
+    """Kompakte Bar über dem Setup-Header: letzte bis zu 3 Sessions.
+    Rendert gar nichts wenn keine gültigen Sessions existieren.
+    """
+    scores = _load_recent_session_scores(n=3)
+    if not scores:
+        return
+
+    def _color_for(pct):
+        if pct >= 60:
+            return ACCENT_PRIMARY
+        if pct >= 30:
+            return ACCENT_AMBER
+        return ACCENT_RED
+
+    def _fmt_ts(ts):
+        # 20260714_180523 → 14.07. · 18:05
+        try:
+            return f"{ts[6:8]}.{ts[4:6]}. · {ts[9:11]}:{ts[11:13]}"
+        except Exception:
+            return ts
+
+    # Trend-Symbol (letzte 2 vergleichen)
+    trend_html = ""
+    if len(scores) >= 2:
+        delta = scores[-1]["pct"] - scores[-2]["pct"]
+        if delta > 0:
+            trend_html = f'<span style="color:{ACCENT_PRIMARY}; font-weight:600;">▲ +{delta}%</span>'
+        elif delta < 0:
+            trend_html = f'<span style="color:{ACCENT_AMBER}; font-weight:600;">▼ {delta}%</span>'
+        else:
+            trend_html = f'<span style="color:{TEXT_TERTIARY};">± 0%</span>'
+
+    tile_html = ""
+    for s in scores:
+        c = _color_for(s["pct"])
+        tile_html += (
+            f'<div style="min-width:96px; padding:10px 14px; background:{SURFACE_1}; '
+            f'  border:1px solid {BORDER_DEFAULT}; border-left:3px solid {c}; border-radius:8px;">'
+            f'  <div style="font-size:18px; font-weight:700; color:{c}; line-height:1.1;">{s["pct"]}%</div>'
+            f'  <div style="font-size:10px; color:{TEXT_TERTIARY}; margin-top:2px; letter-spacing:0.04em;">'
+            f'    {_fmt_ts(s["ts"])}</div>'
+            f'</div>'
+        )
+
+    st.markdown(
+        f'<div style="display:flex; align-items:center; gap:14px; padding:12px 0 20px; '
+        f'  border-bottom:1px solid {BORDER_DEFAULT}; margin-bottom:16px;">'
+        f'  <div style="flex:0 0 auto;">'
+        f'    <div style="font-size:11px; color:{TEXT_TERTIARY}; letter-spacing:0.08em; text-transform:uppercase;">'
+        f'      Deine letzten Sessions</div>'
+        f'    <div style="font-size:13px; color:{TEXT_SECONDARY}; margin-top:2px;">{trend_html}</div>'
+        f'  </div>'
+        f'  <div style="display:flex; gap:8px; overflow-x:auto;">{tile_html}</div>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+
+
 def render_setup_screen():
+    # Retention: letzte bis zu 3 Sessions oberhalb des Wordmarks
+    _render_retention_bar()
+
     # Sellmo-Wordmark (Inline-SVG für scharfe Darstellung · "mo" in Akzentfarbe)
     st.markdown(
         '<div style="margin: 8px 0 4px 0;">'
@@ -2584,9 +2865,17 @@ def render_setup_screen():
                     rate_default = ""
             except Exception:
                 rate_default = ""
+            # BUG-FIX (15.07. · Punkt 10): Auto-Update bei Änderung von anzahl_raten/gesamtkosten.
+            # Streamlit ignoriert value= wenn key= gesetzt ist und session_state[key] existiert.
+            # Deshalb: bei Änderung der Trigger-Signatur session_state explizit überschreiben.
+            # Zwischen Trigger-Änderungen bleibt ein manuell überschriebener Wert erhalten.
+            raten_signature = (anzahl_raten, (gesamtkosten or "").strip())
+            if (st.session_state.get("_raten_signature") != raten_signature
+                    and rate_default):
+                st.session_state["hoehe_pro_rate_input"] = rate_default
+                st.session_state["_raten_signature"] = raten_signature
             hoehe_pro_rate = st.text_input(
-                f"Hoehe pro Rate (auto-berechnet)",
-                value=rate_default,
+                f"Höhe pro Rate (auto-berechnet)",
                 key="hoehe_pro_rate_input"
             )
         raten_dict = {
@@ -2640,7 +2929,7 @@ def render_setup_screen():
         }
     }
 
-    # Legacy-Kompatibilitaet: pricing_info bleibt als Sub-Slice fuer alten Code
+    # Legacy-Kompatibilität: pricing_info bleibt als Sub-Slice für alten Code
     pricing_amount = gesamtkosten
     pricing_time = f"{dauer_stunden} / {dauer_wochen}".strip(" /") if (dauer_stunden or dauer_wochen) else ""
 
@@ -2654,7 +2943,7 @@ def render_setup_screen():
         unsafe_allow_html=True
     )
     customer_goal = st.text_input(
-        "Customer-Ziel *",
+        "Kunden-Ziel *",
         key="customer_goal_input",
         placeholder="z.B. 6.000€/Monat mit Closer-Skills"
     )
@@ -2683,15 +2972,15 @@ def render_setup_screen():
     if not pricing_amount or not pricing_amount.strip():
         missing_fields.append("Preis")
     if not customer_goal or not customer_goal.strip():
-        missing_fields.append("Customer-Ziel")
+        missing_fields.append("Kunden-Ziel")
 
     # NEU-2 Fix (31.05.): rote Border um fehlende Input-Felder via CSS
     if missing_fields:
         css_selectors = []
         if "Preis" in missing_fields:
             css_selectors.append('div[data-testid="stTextInput"]:has(input[aria-label*="Preis"])')
-        if "Customer-Ziel" in missing_fields:
-            css_selectors.append('div[data-testid="stTextInput"]:has(input[aria-label*="Customer-Ziel"])')
+        if "Kunden-Ziel" in missing_fields:
+            css_selectors.append('div[data-testid="stTextInput"]:has(input[aria-label*="Kunden-Ziel"])')
         if css_selectors:
             st.markdown(
                 f'<style>'
@@ -2764,7 +3053,7 @@ def render_setup_screen():
         st.session_state.pricing_info = pricing_dict if pricing_dict else None
         # SOHF v2.0 Patch #53: Customer-Ziel im Session-State speichern
         st.session_state.customer_goal = customer_goal.strip() if customer_goal else None
-        # NEU 31.05.: Vollstaendige Programm-Beschreibung im Session-State speichern
+        # NEU 31.05.: Vollständige Programm-Beschreibung im Session-State speichern
         st.session_state.programm_info = programm_info
         # Session-Logging-System: Setup-Event loggen
         _log_event(
@@ -2781,43 +3070,10 @@ def render_setup_screen():
             customer_goal=st.session_state.customer_goal,
         )
 
-        # Erstes KI-Statement holen
-        if role == "closer":
-            # Customer-Bot eröffnet mit Einwand
-            customer_response, cost = call_customer_bot(
-                selected_persona, [],
-                programm_info=programm_info,
-                customer_goal=st.session_state.customer_goal
-            )
-            st.session_state.conversation_history.append({
-                "role": "customer",
-                "text": customer_response["customer_utterance"]
-            })
-            st.session_state.customer_internal_state = customer_response["internal_state"]
-            st.session_state.total_cost_eur += cost
-            st.session_state.current_phase = "1"  # Default-Start
-            st.session_state.phase_history.append("1")
-        else:
-            # Customer-Modus: Closer-Bot eröffnet erst, wenn Christian ein Customer-Statement geliefert hat
-            # Initial: Christian's Customer-Eröffnung über opening_einwand der Persona vorbelegen
-            st.session_state.conversation_history.append({
-                "role": "customer",
-                "text": selected_persona["opening_einwand"]
-            })
-            st.session_state.current_phase = "1"
-            st.session_state.phase_history.append("1")
-            # Closer-Bot reagiert auf das Customer-Statement
-            closer_response, cost = call_closer_bot(selected_persona,
-                                                      st.session_state.conversation_history)
-            st.session_state.conversation_history.append({
-                "role": "closer",
-                "text": closer_response["closer_utterance"]
-            })
-            st.session_state.current_phase = str(closer_response.get("phase_now", "1"))
-            if st.session_state.current_phase not in st.session_state.phase_history:
-                st.session_state.phase_history.append(st.session_state.current_phase)
-            st.session_state.total_cost_eur += cost
-
+        # BUG-FIX (15.07.): Bot-Call NICHT hier ausführen, sonst bleiben Setup-Widgets
+        # während des 2-5s-API-Calls sichtbar und Streamlit zeigt beim rerun kurz beides.
+        # Stattdessen: Flag setzen, sofort rerun, Chat-Screen holt das Opening-Statement.
+        st.session_state._pending_opening_bot_call = True
         st.rerun()
 
 
@@ -2829,10 +3085,59 @@ def render_chat_screen():
     role = st.session_state.role
     persona = st.session_state.persona
 
+    # BUG-FIX (15.07.): Pending-User-Turn verarbeiten (Bot-Calls hier, nicht im
+    # Karten-/Chat-Input-Handler). Verhindert, dass Karten oder Chat-Elemente während
+    # der 4-10s API-Calls als visueller Rückstand sichtbar bleiben.
+    pending_turn = st.session_state.get("pending_user_input")
+    if pending_turn:
+        st.session_state.pending_user_input = None
+        _process_user_turn(pending_turn)
+        st.rerun()
+
+    # BUG-FIX (15.07.): Opening-Bot-Call verlagert aus Setup-Handler hierher,
+    # damit die Setup-UI während des API-Calls nicht mehr sichtbar ist.
+    if st.session_state.get("_pending_opening_bot_call"):
+        st.session_state._pending_opening_bot_call = False
+        with st.spinner("Session wird gestartet…"):
+            if role == "closer":
+                # Customer-Bot eröffnet mit Einwand
+                customer_response, cost = call_customer_bot(
+                    persona, [],
+                    programm_info=st.session_state.get("programm_info"),
+                    customer_goal=st.session_state.get("customer_goal")
+                )
+                st.session_state.conversation_history.append({
+                    "role": "customer",
+                    "text": customer_response["customer_utterance"]
+                })
+                st.session_state.customer_internal_state = customer_response["internal_state"]
+                st.session_state.total_cost_eur += cost
+                st.session_state.current_phase = "1"
+                st.session_state.phase_history.append("1")
+            else:
+                # Customer-Modus: Christian's Customer-Eröffnung vorbelegen, dann Closer-Bot reagiert
+                st.session_state.conversation_history.append({
+                    "role": "customer",
+                    "text": persona["opening_einwand"]
+                })
+                st.session_state.current_phase = "1"
+                st.session_state.phase_history.append("1")
+                closer_response, cost = call_closer_bot(persona,
+                                                          st.session_state.conversation_history)
+                st.session_state.conversation_history.append({
+                    "role": "closer",
+                    "text": closer_response["closer_utterance"]
+                })
+                st.session_state.current_phase = str(closer_response.get("phase_now", "1"))
+                if st.session_state.current_phase not in st.session_state.phase_history:
+                    st.session_state.phase_history.append(st.session_state.current_phase)
+                st.session_state.total_cost_eur += cost
+        st.rerun()
+
     # Sidebar (automatisch sticky bei Streamlit): Phasen-Leiste + Persona + Buttons
     # BUG-FIX B7 (2026-05-30): Phasen-Leiste als Placeholder, der NACH Coach-Update
     # populated wird. Verhindert Sidebar/Coach-Phase-Mismatch wenn Coach current_phase
-    # waehrend Render-Cycle aktualisiert.
+    # während Render-Cycle aktualisiert.
     with st.sidebar:
         phase_bar_placeholder = st.empty()
         st.markdown(
@@ -2858,7 +3163,7 @@ def render_chat_screen():
 
         st.markdown(
             f'<div style="font-size:11px; color:{TEXT_TERTIARY}; margin-top:12px; text-align:center;">'
-            f'Turns: {st.session_state.turn_count}  ·  Cost: {st.session_state.total_cost_eur:.4f} €'
+            f'Runden: {st.session_state.turn_count}  ·  Cost: {st.session_state.total_cost_eur:.4f} €'
             f"</div>",
             unsafe_allow_html=True
         )
@@ -2929,7 +3234,7 @@ def render_chat_screen():
         # User-Side bestimmen: Christian ist Closer oder Customer
         is_user = (msg_role == "closer" and role == "closer") or (msg_role == "customer" and role == "customer")
         side_class = "user" if is_user else "other"
-        # Avatar nur fuer "other" (User selbst ohne Avatar lassen, Christians Wunsch)
+        # Avatar nur für "other" (User selbst ohne Avatar lassen, Christians Wunsch)
         if msg_role == "customer":
             avatar_url = avatar_customer_url
         else:
@@ -2938,7 +3243,7 @@ def render_chat_screen():
             f'<img class="chat-avatar" src="{avatar_url}" alt="">'
             if (avatar_url and not is_user) else ''
         )
-        # Bubble-Text: Streamlit-Markdown vorab konvertieren (basic, escaped fuer HTML)
+        # Bubble-Text: Streamlit-Markdown vorab konvertieren (basic, escaped für HTML)
         bubble_text = msg["text"].replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
         st.markdown(
             f'<div class="chat-row {side_class}">'
@@ -2973,7 +3278,7 @@ def render_chat_screen():
 
     # U1-Fix (2026-05-30): Auto-Scroll zum Ende der Chat-Historie (WhatsApp-Style).
     # Streamlit rendert sequentiell, aber bei langen Sessions ist der Input am unteren Rand
-    # und der Nutzer muss nicht scrollen. Anchor + JS-Scroll fuer den Fall dass Browser
+    # und der Nutzer muss nicht scrollen. Anchor + JS-Scroll für den Fall dass Browser
     # die Position nicht automatisch nachzieht.
     st.markdown(
         '<div id="chat-bottom"></div>'
@@ -2989,7 +3294,11 @@ def render_chat_screen():
     # Input · Placeholder leer, damit Chat-Feld sauber aussieht
     user_input = st.chat_input("")
     if user_input:
-        _process_user_turn(user_input)
+        # BUG-FIX (15.07.): Bot-Calls in Chat-Screen-Oben verlagern, damit während der
+        # 4-10s API-Calls die Karten/Chat-UI nicht als Rückstand sichtbar bleiben.
+        st.session_state.pending_user_input = user_input
+        # v2.6.3: freies Tippen = kein Cross-Coach-Kohärenz-Anspruch
+        st.session_state._pending_coach_context = {"chosen_option_correctness": "typed_free"}
         st.rerun()
 
 
@@ -3055,14 +3364,14 @@ def _render_phasen_coach_box():
         st.session_state.current_phase = str(coach_phase_now)
         if str(coach_phase_now) not in st.session_state.phase_history:
             st.session_state.phase_history.append(str(coach_phase_now))
-        # Self-Correction-Detection (These #14): erkenne Phase-Rueckspruenge
+        # Self-Correction-Detection (These #14): erkenne Phase-Rücksprünge
         try:
             if old_phase and str(old_phase).isdigit() and str(coach_phase_now).isdigit():
                 if int(coach_phase_now) < int(old_phase):
                     st.session_state.last_phase_regression = {
                         "from": str(old_phase),
                         "to": str(coach_phase_now),
-                        "reason": "D5 Self-Correction · Phase-Ruecksprung wegen schwacher Antwort-Substanz"
+                        "reason": "D5 Self-Correction · Phase-Rücksprung wegen schwacher Antwort-Substanz"
                     }
         except Exception:
             pass
@@ -3074,13 +3383,13 @@ def _render_phasen_coach_box():
             f'<div style="background: rgba(250, 204, 21, 0.12); border-left: 3px solid #FACC15; '
             f'padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 13px;">'
             f'<strong>D5 Self-Correction</strong> · '
-            f'Phasen-Ruecksprung P{regression["from"]} → P{regression["to"]}<br>'
+            f'Phasen-Rücksprung P{regression["from"]} → P{regression["to"]}<br>'
             f'<span style="color: #94a3b8; font-size: 12px;">{regression["reason"]}</span>'
             f'</div>',
             unsafe_allow_html=True
         )
 
-    # P-4-Fix 01.06.: Coach-Box-Header uebersichtlicher.
+    # P-4-Fix 01.06.: Coach-Box-Header übersichtlicher.
     # Vorher: 4 Info-Blocks vermischt in einer Box.
     # Nachher: kompakter Phase-Pill oben + Methodischer Tipp prominent + Customer-Zustand als Hover/Sekundaer.
     phase_now_str = coach.get("phase_now", "?")
@@ -3129,32 +3438,24 @@ def _render_phasen_coach_box():
                 ],
             )
             st.session_state[coach_log_key] = True
-        # Session-Logging: Live-Markierungs-Button fuer Feedback-Marker
-        col_header, col_flag = st.columns([4, 1])
-        with col_header:
-            st.markdown(
-                f'<div class="coach-meta" style="margin-top: 12px;">Drei Antwort-Optionen — '
-                f'<strong>A = richtig · B = fast richtig · C = falsch</strong> '
-                f'(Lern-Pfad, Patch #51)</div>',
-                unsafe_allow_html=True
-            )
+        # Beta-Feedback-Marker rechts-ausgerichtet (Header entfernt 15.07. — Karten sagen sich selbst)
+        _, col_flag = st.columns([5, 1])
         with col_flag:
-            # F5-Fix (31.05.): Klick auf "markieren" oeffnet sofort inline Textfeld
             flag_open_key = f"flag_open_turn_{st.session_state.turn_count}"
             if st.button("🚩 markieren",
                          key=f"flag_turn_{st.session_state.turn_count}",
-                         help="Markiert diesen Turn und oeffnet sofort ein Feedback-Textfeld",
+                         help="Markiert diesen Turn und öffnet sofort ein Feedback-Textfeld",
                          use_container_width=True):
                 _log_event("feedback_marker", note="manual flag by Christian")
                 st.session_state[flag_open_key] = True
-                st.toast("Turn markiert · Textfeld unten")
+                st.toast("Runde markiert · Textfeld unten")
 
         # F5-Fix: Inline-Textfeld direkt unter Coach-Box, wenn markiert
         if st.session_state.get(flag_open_key, False):
             current_turn = st.session_state.turn_count
             inline_fb_key = f"inline_feedback_turn_{current_turn}"
             inline_text = st.text_area(
-                f"Was an Turn {current_turn} ist gut/schlecht? (wird automatisch gespeichert)",
+                f"Was an Runde {current_turn} ist gut/schlecht? (wird automatisch gespeichert)",
                 key=inline_fb_key,
                 height=80,
                 placeholder="z.B. 'Coach hat hier Reframe-Move in P2 angeboten, sollte erst P4 sein.'"
@@ -3195,7 +3496,7 @@ def _render_phasen_coach_box():
             coach["options"],
             key=lambda o: sort_order.get(o.get("correctness", ""), 99)
         )
-        # P-2-Fix: globales CSS fuer Karten-Buttons via :has()-Selector
+        # P-2-Fix: globales CSS für Karten-Buttons via :has()-Selector
         # Streamlit-Buttons werden via Marker-Span im selben Column-Container ausgewaehlt.
         st.markdown(
             f'''<style>
@@ -3203,7 +3504,7 @@ def _render_phasen_coach_box():
                 background: {correctness_color_map["richtig"]} !important;
                 border: 1px solid {correctness_color_map["richtig"]} !important;
                 color: #ffffff !important;
-                min-height: 240px !important;
+                min-height: 140px !important;
                 padding: 18px 20px !important;
                 text-align: left !important;
                 font-weight: 400 !important;
@@ -3223,7 +3524,7 @@ def _render_phasen_coach_box():
                 background: {correctness_color_map["fast_richtig"]} !important;
                 border: 1px solid {correctness_color_map["fast_richtig"]} !important;
                 color: #ffffff !important;
-                min-height: 240px !important;
+                min-height: 140px !important;
                 padding: 18px 20px !important;
                 text-align: left !important;
                 font-weight: 400 !important;
@@ -3243,7 +3544,7 @@ def _render_phasen_coach_box():
                 background: {correctness_color_map["falsch"]} !important;
                 border: 1px solid {correctness_color_map["falsch"]} !important;
                 color: #ffffff !important;
-                min-height: 240px !important;
+                min-height: 140px !important;
                 padding: 18px 20px !important;
                 text-align: left !important;
                 font-weight: 400 !important;
@@ -3271,17 +3572,22 @@ def _render_phasen_coach_box():
                 muster_tooltip = opt.get("muster", "")
                 tip_text = opt.get("tip", "")
                 marker = correctness_marker_class.get(correctness, "lern-pfad-marker-neutral")
-                # Unsichtbarer Marker-Span im Column-Container fuer CSS-Targeting
+                # Unsichtbarer Marker-Span im Column-Container für CSS-Targeting
                 st.markdown(f'<span class="{marker}" style="display:none;"></span>',
                             unsafe_allow_html=True)
-                # Button-Label mit Karten-Inhalt (Markdown multi-line)
+                # Button-Label kompakt: Badge + Antwort-Text (keine Folge — die kommt beim Hover)
                 btn_label = (
                     f"**{badge_label}**\n\n"
                     f"{opt.get('text', '')}"
                 )
+                # Hover-Info kombiniert: Folge + Muster + Tipp (Streamlit-help = kleiner "?"-Icon am Button)
+                help_parts = []
                 if consequence_hint:
-                    btn_label += f"\n\n*Folge: {consequence_hint}*"
-                help_parts = [p for p in [muster_tooltip, tip_text] if p]
+                    help_parts.append(f"Folge: {consequence_hint}")
+                if muster_tooltip:
+                    help_parts.append(muster_tooltip)
+                if tip_text:
+                    help_parts.append(tip_text)
                 help_text = "\n\n".join(help_parts) if help_parts else None
                 if st.button(
                     btn_label,
@@ -3296,7 +3602,14 @@ def _render_phasen_coach_box():
                         option_correctness=opt.get("correctness"),
                         text=opt["text"],
                     )
-                    _process_user_turn(opt["text"])
+                    # BUG-FIX (15.07.): Bot-Calls in Chat-Screen-Oben verlagern.
+                    st.session_state.pending_user_input = opt["text"]
+                    # v2.6.3 Cross-Coach-Kohärenz (Punkt 12): Kontext für Feedback-Coach
+                    st.session_state._pending_coach_context = {
+                        "chosen_option_correctness": opt.get("correctness", "unknown"),
+                        "coach_recommendation_hint": coach.get("methodical_hint", ""),
+                        "coach_recommendation_phase_next": coach.get("phase_next_target", ""),
+                    }
                     st.rerun()
 
 
@@ -3357,6 +3670,9 @@ def _process_user_turn(user_text):
     role = st.session_state.role
     persona = st.session_state.persona
 
+    # v2.6.3 Cross-Coach-Kohärenz: aus den Handlern übergebener Kontext, einmalig verbraucht
+    phasen_coach_context = st.session_state.pop("_pending_coach_context", None)
+
     # Session-Logging: Closer-Move (egal ob Click-Option oder Typed-Input)
     _log_event("closer_turn", text=user_text, role=role)
 
@@ -3373,7 +3689,8 @@ def _process_user_turn(user_text):
             with st.spinner("Coach wertet aus..."):
                 fb, cost = call_feedback_coach(
                     user_text, st.session_state.conversation_history,
-                    persona, "live", evaluating_role="closer"
+                    persona, "live", evaluating_role="closer",
+                    phasen_coach_context=phasen_coach_context,
                 )
                 st.session_state.live_feedback_history.append(fb)
                 st.session_state.total_cost_eur += cost
@@ -3553,7 +3870,7 @@ def render_end_of_call_screen():
             f'<div class="cc-kpi-grid">'
             f'  <div class="cc-kpi">'
             f'    <div class="cc-kpi-value">{overview.get("n_turns", 0)}</div>'
-            f'    <div class="cc-kpi-label">Turns gesamt</div>'
+            f'    <div class="cc-kpi-label">Runden gesamt</div>'
             f'  </div>'
             f'  <div class="cc-kpi">'
             f'    <div class="cc-kpi-value">{overview.get("pfad_variant_identified", "?")}</div>'
@@ -3567,31 +3884,189 @@ def render_end_of_call_screen():
             unsafe_allow_html=True
         )
 
+        # === Phase-Verlauf als visuelle EPISCH-Kette ===
         journey = overview.get("phase_journey", [])
         if journey:
-            st.markdown(f"**Phase-Verlauf:** {' → '.join(f'P{p}' for p in journey)}")
+            _episch_map = {p_id: (letter, name) for p_id, letter, name in PHASE_DEFINITIONS}
+            chips = []
+            for i, p in enumerate(journey):
+                letter, name = _episch_map.get(str(p), (str(p), ""))
+                chips.append(
+                    f'<span title="{name}" style="display:inline-flex; align-items:center; '
+                    f'  justify-content:center; width:32px; height:32px; border-radius:50%; '
+                    f'  background:{ACCENT_SUBTLE}; color:{ACCENT_PRIMARY}; font-weight:700; '
+                    f'  font-size:14px; margin:0 2px;">{letter}</span>'
+                )
+                if i < len(journey) - 1:
+                    chips.append(
+                        f'<span style="color:{TEXT_TERTIARY}; margin:0 4px;">›</span>'
+                    )
+            st.markdown(
+                f'<div style="display:flex; align-items:center; flex-wrap:wrap; gap:2px; '
+                f'  padding:14px 18px; background:{SURFACE_1}; border:1px solid {BORDER_DEFAULT}; '
+                f'  border-radius:12px; margin:8px 0 24px;">'
+                f'  <span style="font-size:11px; color:{TEXT_TERTIARY}; letter-spacing:0.08em; '
+                f'    text-transform:uppercase; margin-right:14px;">Phase-Verlauf</span>'
+                f'  {"".join(chips)}'
+                f'</div>',
+                unsafe_allow_html=True
+            )
 
-        st.markdown("---")
-        col_l, col_r = st.columns(2)
-        with col_l:
-            st.markdown("### Stärken")
-            for s in report.get("staerken", []):
-                with st.expander(f"Turn {s.get('turn', '?')}: {s.get('what', '')}"):
-                    st.markdown(s.get("why_strong", ""))
-        with col_r:
-            st.markdown("### Schwächen")
-            for w in report.get("schwaechen", []):
-                with st.expander(f"Turn {w.get('turn', '?')}: {w.get('what', '')}"):
-                    st.markdown(f"**Was hätte gepasst:** {w.get('what_would_have_fit', '')}")
-                    st.markdown(f"**Warum:** {w.get('why', '')}")
+        # === Stärken (grün, cat-trust) ===
+        staerken = report.get("staerken", []) or []
+        if staerken:
+            st.markdown("### Deine Stärken")
+            for s in staerken:
+                turn_n = s.get("turn", "?")
+                what = s.get("what", "")
+                why_strong = s.get("why_strong", "")
+                st.markdown(
+                    f'<div class="cc-cash-card cat-trust">'
+                    f'  <div class="cc-cash-head">'
+                    f'    <div class="cc-cash-icon cat-trust">✓</div>'
+                    f'    <div class="cc-cash-title">Runde {turn_n} · {what}</div>'
+                    f'  </div>'
+                    f'  <div class="cc-cash-step">'
+                    f'    <div class="cc-step-num">1</div>'
+                    f'    <div>'
+                    f'      <div class="cc-step-label">Warum stark</div>'
+                    f'      <div class="cc-step-text">{why_strong}</div>'
+                    f'    </div>'
+                    f'  </div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
 
-        st.markdown("---")
-        st.markdown("### Key Insights")
-        for insight in report.get("key_insights", []):
-            st.markdown(f"- {insight}")
+        # === Schwächen (rot, cat-price) mit Turn-Rekonstruktion im Deep-Feedback-Container ===
+        schwaechen = report.get("schwaechen", []) or []
+        if schwaechen:
+            st.markdown("### Deine Potenziale")
+            history = st.session_state.get("conversation_history", []) or []
+            for w in schwaechen:
+                turn_n = w.get("turn", "?")
+                what = w.get("what", "")
+                what_fit = w.get("what_would_have_fit", "")
+                why = w.get("why", "")
 
-        st.markdown("### Next-Level-Tipp")
-        st.info(report.get("next_level_tipp", ""))
+                # Turn-Rekonstruktion aus conversation_history (best-effort)
+                # turn_n vom Coach zählt Closer-Turns. Wir mappen auf history-Indizes:
+                # sammle Closer-Utterance + vorherige Customer-Utterance.
+                bubbles_html = ""
+                try:
+                    turn_n_int = int(turn_n)
+                    closer_idxs = [i for i, m in enumerate(history) if m.get("role") == "closer"]
+                    if 1 <= turn_n_int <= len(closer_idxs):
+                        closer_i = closer_idxs[turn_n_int - 1]
+                        # Vorherige Customer-Message (falls vorhanden)
+                        prev_cust = None
+                        for j in range(closer_i - 1, -1, -1):
+                            if history[j].get("role") == "customer":
+                                prev_cust = history[j].get("text", "")
+                                break
+                        closer_text = history[closer_i].get("text", "")
+                        persona_name = st.session_state.get("persona", {}).get("name", "Kunde")
+                        _initial = (persona_name[:1] if persona_name else "K").upper()
+
+                        if prev_cust:
+                            bubbles_html += (
+                                f'<div class="cc-coach-reply" style="margin-top:16px;">'
+                                f'  <div class="cc-coach-reply-avatar" style="background:{SURFACE_2}; color:{TEXT_PRIMARY};">{_initial}</div>'
+                                f'  <div class="cc-coach-reply-bubble">'
+                                f'    <div class="cc-coach-reply-label" style="color:{TEXT_TERTIARY};">{persona_name} sagte</div>'
+                                f'    {prev_cust}'
+                                f'  </div>'
+                                f'</div>'
+                            )
+                        bubbles_html += (
+                            f'<div style="display:flex; justify-content:flex-end; margin-top:8px;">'
+                            f'  <div class="cc-error-bubble">'
+                            f'    <div style="font-size:12px; color:rgba(255,255,255,0.7); font-weight:600; margin-bottom:6px;">Deine Antwort</div>'
+                            f'    {closer_text}'
+                            f'  </div>'
+                            f'</div>'
+                        )
+                        if what_fit:
+                            bubbles_html += (
+                                f'<div class="cc-coach-reply" style="margin-top:8px;">'
+                                f'  <div class="cc-coach-reply-avatar">AI</div>'
+                                f'  <div class="cc-coach-reply-bubble">'
+                                f'    <div class="cc-coach-reply-label">Coach-Alternative</div>'
+                                f'    {what_fit}'
+                                f'  </div>'
+                                f'</div>'
+                            )
+                except (ValueError, TypeError, IndexError):
+                    pass
+
+                # Karten-Hülle mit Deep-Feedback-Navy-Container für Rekonstruktion
+                st.markdown(
+                    f'<div class="cc-cash-card cat-price">'
+                    f'  <div class="cc-cash-head">'
+                    f'    <div class="cc-cash-icon cat-price">!</div>'
+                    f'    <div class="cc-cash-title">Runde {turn_n} · {what}</div>'
+                    f'  </div>'
+                    f'  <div class="cc-cash-step">'
+                    f'    <div class="cc-step-num">1</div>'
+                    f'    <div>'
+                    f'      <div class="cc-step-label">Warum problematisch</div>'
+                    f'      <div class="cc-step-text">{why}</div>'
+                    f'    </div>'
+                    f'  </div>'
+                    + (
+                        f'  <div style="background:{BG_DEEP_FEEDBACK}; border-radius:12px; '
+                        f'    padding:14px 16px; margin-top:14px;">'
+                        f'    <div style="font-size:11px; color:{TEXT_TERTIARY}; letter-spacing:0.08em; '
+                        f'      text-transform:uppercase; margin-bottom:4px;">Der Moment im Chat</div>'
+                        f'    {bubbles_html}'
+                        f'  </div>'
+                        if bubbles_html else
+                        (
+                            f'  <div class="cc-cash-step">'
+                            f'    <div class="cc-step-num">2</div>'
+                            f'    <div>'
+                            f'      <div class="cc-step-label">Was gepasst hätte</div>'
+                            f'      <div class="cc-step-text">{what_fit}</div>'
+                            f'    </div>'
+                            f'  </div>'
+                        )
+                    )
+                    + f'</div>',
+                    unsafe_allow_html=True
+                )
+
+        # === Key Insights + Next-Level-Tipp ===
+        insights = report.get("key_insights", []) or []
+        next_tipp = report.get("next_level_tipp", "")
+
+        if insights or next_tipp:
+            st.markdown("### Was du aus dieser Session mitnimmst")
+
+        if insights:
+            insight_items = "".join(
+                f'<li style="margin-bottom:8px; line-height:1.5;">{ins}</li>'
+                for ins in insights
+            )
+            st.markdown(
+                f'<div style="background:{SURFACE_1}; border:1px solid {BORDER_DEFAULT}; '
+                f'  border-radius:12px; padding:16px 20px; margin-bottom:12px;">'
+                f'  <ul style="margin:0; padding-left:20px; color:{TEXT_PRIMARY};">'
+                f'    {insight_items}'
+                f'  </ul>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+
+        if next_tipp:
+            st.markdown(
+                f'<div style="background:linear-gradient(135deg, {ACCENT_SUBTLE} 0%, {SURFACE_1} 100%); '
+                f'  border:1px solid {ACCENT_PRIMARY}; border-radius:14px; padding:18px 20px; '
+                f'  margin-bottom:12px;">'
+                f'  <div style="font-size:11px; color:{ACCENT_PRIMARY}; letter-spacing:0.1em; '
+                f'    text-transform:uppercase; font-weight:700; margin-bottom:8px;">Dein nächster Schritt</div>'
+                f'  <div style="font-size:15px; line-height:1.5; color:{TEXT_PRIMARY};">{next_tipp}</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
 
         # ============================================================
         # SESSION-FEEDBACK-FORM (Session-Logging-System · 30.05.)
@@ -3626,7 +4101,7 @@ def render_end_of_call_screen():
                      if e.get("turn_n") == turn_n and e.get("type") == "closer_action"),
                     None
                 )
-                with st.expander(f"Turn {turn_n} · {coach_event.get('phase_now', '?') if coach_event else '?'}"):
+                with st.expander(f"Runde {turn_n} · {coach_event.get('phase_now', '?') if coach_event else '?'}"):
                     if coach_event:
                         st.markdown(f"**Coach-Hinweis:** {coach_event.get('methodical_hint', '')}")
                     if closer_event:
@@ -3642,14 +4117,14 @@ def render_end_of_call_screen():
                     if feedback_text:
                         st.session_state.session_feedback[str(turn_n)] = feedback_text
         else:
-            st.caption("Keine Turns markiert (waehrend der Session 🚩-Button nutzen).")
+            st.caption("Keine Turns markiert (während der Session 🚩-Button nutzen).")
 
         st.markdown("#### Gesamt-Session-Feedback")
         global_fb = st.text_area(
             "Was lief generell gut/schlecht in dieser Session?",
             key="session_feedback_global_input",
             height=120,
-            placeholder="z.B. Customer-Bot halluziniert ab Turn 5, EPISCH-Phasen werden nicht durchlaufen, etc."
+            placeholder="z.B. Kunden-Bot halluziniert ab Runde 5, EPISCH-Phasen werden nicht durchlaufen, etc."
         )
         if global_fb:
             st.session_state.session_feedback_global = global_fb
@@ -3701,13 +4176,21 @@ def main():
 
     # User ist eingeloggt + AVV akzeptiert
     init_session_state()
-    # User-Info im Session-State (fuer spaetere Personalisierung)
+    # User-Info im Session-State (für spaetere Personalisierung)
     st.session_state.auth_username = username
     st.session_state.auth_name = name
 
     # User-Info + Logout in Sidebar (oben)
     if not isinstance(authenticator, dict):
         render_user_info_sidebar(authenticator, username, name)
+
+    # Beta-Tester: Onboarding-Zwischenscreen vor dem ersten Setup
+    is_beta = isinstance(authenticator, dict) and authenticator.get("_beta_mode")
+    if (is_beta
+            and not st.session_state.onboarding_done
+            and not st.session_state.session_started):
+        render_onboarding_screen()
+        return
 
     if not st.session_state.session_started:
         render_setup_screen()

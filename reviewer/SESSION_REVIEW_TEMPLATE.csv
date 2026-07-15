@@ -1,0 +1,3 @@
+session_id,persona,schwierigkeit,runde,kunde_move_kurz,coach_hint_kurz,user_wahl,user_text_kurz,is_methodisch_ok,fehler_typ,alternativ_vorschlag,sprach_natuerlichkeit_1_5,repetitions_marker,kommentar
+"BEISPIEL_20260715_180523","F",1,3,"Rechnet sich das für mich?","P1 → P2: Präzisierung statt Argument","A","Was genau wäre für dich der Beleg?",JA,keiner,,4,,"Kunde ist neugierig, Präzisierung sitzt."
+"BEISPIEL_20260715_180523","F",1,5,"Was ist der nächste Schritt?","P5 Commitment-Frage","A","Du hast selbst gesagt du willst 20k...",NEIN,halluzination,"Perfekt. Ich schicke dir den Vertrag und wir gehen ihn zusammen durch.",2,"'Du hast selbst gesagt'","Halluziniertes Zitat + zu förmlich für den Moment"
