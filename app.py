@@ -2241,10 +2241,11 @@ def call_feedback_coach(last_user_utterance, conversation_history, persona, mode
     try:
         raw, cost = _api_call(FEEDBACK_COACH_PROMPT, user_message, max_t, TEMPERATURE_COACH)
         data = json.loads(raw)
-        # Cross-Coach-Kohärenz-Clamp (v2.6.3, Punkt 12): Wenn Phasen-Coach die gewählte
-        # Option als 'richtig' markiert hat, darf Feedback-Rating nicht 'methodisch_fehlerhaft'
-        # sein. Prompt-Regel setzt das primär durch, das hier ist der Sicherheitsgurt.
-        if (phasen_coach_context
+        # === LIVE-MODUS: Cross-Coach-Kohärenz-Clamp (v2.6.3, Punkt 12) ===
+        # Wenn Phasen-Coach die gewählte Option als 'richtig' markiert hat,
+        # darf Feedback-Rating nicht 'methodisch_fehlerhaft' sein.
+        if (mode == "live"
+                and phasen_coach_context
                 and phasen_coach_context.get("chosen_option_correctness") == "richtig"
                 and isinstance(data, dict)
                 and data.get("rating") == "methodisch_fehlerhaft"):
@@ -2258,6 +2259,45 @@ def call_feedback_coach(last_user_utterance, conversation_history, persona, mode
                            chosen_option_correctness="richtig")
             except Exception:
                 pass
+        # === END-OF-CALL-MODUS: Feinschliff-Umleitung (v2.6.4) ===
+        # phasen_coach_context enthält im end_of_call-Modus eine turn_correctness-Map.
+        # Schwächen deren zugehöriger Turn als 'richtig' markiert war → in 'feinschliff'
+        # verschieben (statt in 'schwaechen'). Prompt sollte das schon liefern, das ist
+        # der Sicherheitsgurt.
+        if (mode == "end_of_call"
+                and phasen_coach_context
+                and isinstance(data, dict)):
+            turn_correctness_map = phasen_coach_context.get("turn_correctness_map") or {}
+            schwaechen = data.get("schwaechen", []) or []
+            feinschliff = data.get("feinschliff", []) or []
+            filtered_schwaechen = []
+            moved_count = 0
+            for w in schwaechen:
+                try:
+                    turn_n = int(w.get("turn", -1))
+                except (TypeError, ValueError):
+                    turn_n = -1
+                # Map-Keys können str oder int sein — beides prüfen
+                correctness = (turn_correctness_map.get(str(turn_n))
+                               or turn_correctness_map.get(turn_n)
+                               or "typed_free")
+                if correctness == "richtig":
+                    feinschliff.append(w)
+                    moved_count += 1
+                else:
+                    filtered_schwaechen.append(w)
+            if moved_count:
+                data["schwaechen"] = filtered_schwaechen
+                data["feinschliff"] = feinschliff
+                data["_feinschliff_moves"] = moved_count
+                try:
+                    _log_event("cross_coach_clamp",
+                               mode="end_of_call",
+                               moved_to_feinschliff=moved_count)
+                except Exception:
+                    pass
+            elif feinschliff and "feinschliff" not in data:
+                data["feinschliff"] = feinschliff
         return data, cost
     except json.JSONDecodeError as e:
         return {"error": f"JSON-Parse-Fehler: {e}"}, 0.0
@@ -3964,10 +4004,23 @@ def _end_session():
         last_to_eval = next((m["text"] for m in reversed(history) if m["role"] == "closer"), "")
         eval_role = "ai_closer"  # KI-Closer-Moves werden bewertet
 
+    # v2.6.4 Cross-Coach-Kohärenz für End-of-Call (Feinschliff-Umleitung):
+    # Turn-Correctness-Map aus session_log bauen. Iteriere über closer_action-Events
+    # in Reihenfolge — der 1. entspricht Turn 1 im Feedback-Coach-JSON, der 2. Turn 2, etc.
+    # Freie Tipp-Turns (kein closer_action) fehlen in der Map → Feedback-Coach bewertet frei.
+    turn_correctness_map = {}
+    closer_actions = [e for e in st.session_state.get("session_log", [])
+                      if e.get("type") == "closer_action"]
+    for i, e in enumerate(closer_actions, start=1):
+        turn_correctness_map[i] = e.get("option_correctness") or "unknown"
+    phasen_ctx = ({"turn_correctness_map": turn_correctness_map}
+                  if turn_correctness_map else None)
+
     if last_to_eval:
         with st.spinner("End-of-Call-Auswertung läuft..."):
             report, cost = call_feedback_coach(last_to_eval, history, persona,
-                                                "end_of_call", evaluating_role=eval_role)
+                                                "end_of_call", evaluating_role=eval_role,
+                                                phasen_coach_context=phasen_ctx)
             st.session_state.end_of_call_report = report
             st.session_state.total_cost_eur += cost
 
@@ -4246,6 +4299,48 @@ def render_end_of_call_screen():
                         )
                     )
                     + f'</div>',
+                    unsafe_allow_html=True
+                )
+
+        # === Feinschliff für Fortgeschrittene (v2.6.4) ===
+        # Sub-optimale Turns die als RICHTIG geklickt wurden — nicht als Fehler,
+        # sondern als Weiterentwicklungs-Impuls. Softer Ton, blau statt rot.
+        feinschliff = report.get("feinschliff", []) or []
+        if feinschliff:
+            st.markdown("### Feinschliff für Fortgeschrittene")
+            st.markdown(
+                f'<div style="color:{TEXT_SECONDARY}; font-size:13px; margin:-4px 0 12px 0;">'
+                f"Diese Antworten waren methodisch korrekt (Coach hat sie als richtig markiert). "
+                f"Im Rückblick gibt es aber noch eine Optimierungs-Ebene."
+                f"</div>",
+                unsafe_allow_html=True
+            )
+            for w in feinschliff:
+                turn_n = w.get("turn", "?")
+                what = w.get("what", "")
+                what_fit = w.get("what_would_have_fit", "")
+                why = w.get("why", "")
+                st.markdown(
+                    f'<div class="cc-cash-card cat-auth">'
+                    f'  <div class="cc-cash-head">'
+                    f'    <div class="cc-cash-icon cat-auth">↑</div>'
+                    f'    <div class="cc-cash-title">Runde {turn_n} · {what}</div>'
+                    f'  </div>'
+                    f'  <div class="cc-cash-step">'
+                    f'    <div class="cc-step-num">1</div>'
+                    f'    <div>'
+                    f'      <div class="cc-step-label">Warum verbesserbar</div>'
+                    f'      <div class="cc-step-text">{why}</div>'
+                    f'    </div>'
+                    f'  </div>'
+                    f'  <div class="cc-cash-step">'
+                    f'    <div class="cc-step-num">2</div>'
+                    f'    <div>'
+                    f'      <div class="cc-step-label">Optimalere Variante</div>'
+                    f'      <div class="cc-step-text">{what_fit}</div>'
+                    f'    </div>'
+                    f'  </div>'
+                    f'</div>',
                     unsafe_allow_html=True
                 )
 
