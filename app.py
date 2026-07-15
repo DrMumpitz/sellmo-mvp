@@ -2175,6 +2175,177 @@ def call_closer_bot(persona, conversation_history):
         }, 0.0
 
 
+# ============================================================
+# POST-PROCESSOR (Ansatz F · v2.6.5 · 2026-07-15)
+# ============================================================
+# Deterministische Regel-Checks nach dem Phasen-Coach-Output.
+# Ergänzt die v2.6.3-Prompt-Regeln um harte Python-Enforcement.
+# Markiert Verstöße pro Option in _violations-Liste, loggt Aggregate.
+# Verwirft NICHT — UI zeigt die Verstöße als ⚠-Marker mit Tooltip.
+
+_CLOSE_PHRASES = [
+    "wärst du dabei", "bist du dabei", "bist du bereit", "willst du starten",
+    "kannst du dich verpflichten", "bereit zu starten", "vertrag jetzt",
+    "einsteigen", "committen", "commit dich",
+]
+
+_HANDLUNGS_TRIGGERS = [
+    "wo unterschreibe", "wie geht's konkret weiter", "wie läuft das ab",
+    "schick mir", "los geht's", "lass uns starten", "ich bin dabei",
+    "ich mach das", "grundsätzlich dabei", "dann bin ich dabei",
+    "lass uns das machen",
+]
+
+_FOLLOWUP_COMMITMENT_PHRASES = [
+    "bist du bereit", "wirklich sicher", "willst du dich verpflichten",
+    "kannst du dich verpflichten", "bist du wirklich",
+]
+
+_HALLUZINATION_PATTERNS = [
+    r"[Dd]u hast (?:selbst |gerade |eben )?(?:gesagt|genannt|erwähnt|beschrieben)[:,]?\s*[\"']([^\"']{6,})[\"']?",
+    r"[Ww]ie du (?:selbst |gerade |eben )?(?:gesagt|genannt|erwähnt|beschrieben)(?: hast)?[:,]?\s*[\"']([^\"']{6,})[\"']?",
+]
+
+
+def _fuzzy_word_overlap(needle, haystack, threshold=0.6):
+    """True wenn mind. `threshold` der signifikanten Worte aus needle in haystack sind."""
+    if not needle or not haystack:
+        return False
+    needle_words = set(w.lower() for w in needle.split() if len(w) > 3)
+    if not needle_words:
+        return False
+    haystack_words = set(w.lower() for w in haystack.split())
+    hits = sum(1 for w in needle_words if w in haystack_words)
+    return (hits / len(needle_words)) >= threshold
+
+
+def _check_halluzination(option_text, conversation_history):
+    """R2: 'Du hast selbst gesagt X' — verweist X auf echtes Kunden-Wort?"""
+    import re as _re
+    cust_texts = [
+        (msg.get("text", "") or "").lower()
+        for msg in conversation_history[-15:]
+        if msg.get("role") == "customer"
+    ]
+    for pat in _HALLUZINATION_PATTERNS:
+        for m in _re.finditer(pat, option_text or ""):
+            zitat = (m.group(1) or "").strip().lower()
+            if len(zitat) < 6:
+                continue
+            found = any(
+                zitat in ct or _fuzzy_word_overlap(zitat, ct)
+                for ct in cust_texts
+            )
+            if not found:
+                return True
+    return False
+
+
+def _check_phase_sprung(option_text, current_phase, conversation_history):
+    """R1: P5/P6-Sprache in P1/P2 verdächtig, wenn Kunde noch wenig geliefert hat."""
+    if str(current_phase) not in ("1", "2", "Pre-0"):
+        return False
+    text_l = (option_text or "").lower()
+    if not any(p in text_l for p in _CLOSE_PHRASES):
+        return False
+    n_customer_moves = sum(1 for m in conversation_history if m.get("role") == "customer")
+    return n_customer_moves < 3
+
+
+def _check_wert_redundanz(option_text, conversation_history, pricing_info, customer_goal):
+    """1×-Regel v2.6.2: Preis-Zahl oder Ziel-Zahl in Option UND bereits in vorheriger closer-History."""
+    import re as _re
+    if not option_text:
+        return False
+    prev_closer_text = " ".join(
+        m.get("text", "") or "" for m in conversation_history if m.get("role") == "closer"
+    )
+    if not prev_closer_text:
+        return False
+    # Kandidaten-Zahlen: Preis + Ziel
+    candidates = []
+    if isinstance(pricing_info, dict):
+        amount = (pricing_info.get("amount") or "").strip()
+        if amount:
+            m = _re.search(r"[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?", amount)
+            if m:
+                candidates.append(m.group())
+    if customer_goal:
+        m = _re.search(r"[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?", customer_goal)
+        if m:
+            candidates.append(m.group())
+    for zahl in candidates:
+        if zahl and zahl in option_text and zahl in prev_closer_text:
+            return True
+    return False
+
+
+def _check_handlungs_trigger_verletzung(option_text, conversation_history):
+    """R4: Kunde sendet Handlungs-Trigger, Option enthält Commitment-Rückfrage."""
+    last_customer = next(
+        ((m.get("text", "") or "") for m in reversed(conversation_history)
+         if m.get("role") == "customer"),
+        ""
+    )
+    if not last_customer:
+        return False
+    last_l = last_customer.lower()
+    if not any(t in last_l for t in _HANDLUNGS_TRIGGERS):
+        return False
+    opt_l = (option_text or "").lower()
+    return any(f in opt_l for f in _FOLLOWUP_COMMITMENT_PHRASES)
+
+
+_VIOLATION_LABELS = {
+    "halluziniertes_zitat": "Zitat evtl. nicht im Chat belegt",
+    "phase_sprung_p5_p6": "Close-Sprache in früher Phase",
+    "wert_wiederholung": "Preis/Ziel bereits genannt",
+    "handlungs_trigger_ignoriert": "Kunde will handeln, Option fragt zurück",
+}
+
+
+def _apply_phasen_coach_post_processor(coach_data, conversation_history, current_phase,
+                                        pricing_info=None, customer_goal=None):
+    """Deterministischer Post-Processor nach Phasen-Coach-Output.
+    Markiert Verstöße pro Option in _violations-Liste. Loggt Aggregate.
+    Verwirft nicht — der User sieht die Optionen weiter, aber UI kann warnen.
+    """
+    if not isinstance(coach_data, dict):
+        return coach_data
+    options = coach_data.get("options") or []
+    if not options:
+        return coach_data
+
+    total_violations = 0
+    per_option_violations = []
+    for opt in options:
+        violations = []
+        text = opt.get("text", "") or ""
+        if _check_halluzination(text, conversation_history):
+            violations.append("halluziniertes_zitat")
+        if _check_phase_sprung(text, current_phase, conversation_history):
+            violations.append("phase_sprung_p5_p6")
+        if _check_wert_redundanz(text, conversation_history, pricing_info, customer_goal):
+            violations.append("wert_wiederholung")
+        if _check_handlungs_trigger_verletzung(text, conversation_history):
+            violations.append("handlungs_trigger_ignoriert")
+        if violations:
+            opt["_violations"] = violations
+            total_violations += len(violations)
+        per_option_violations.append(violations)
+
+    coach_data["_post_processor_total_violations"] = total_violations
+    if total_violations:
+        try:
+            _log_event("post_processor_violations",
+                       total=total_violations,
+                       current_phase=str(current_phase),
+                       per_option=per_option_violations)
+        except Exception:
+            pass
+    return coach_data
+
+
 def call_phasen_coach(persona, conversation_history, current_phase, mode,
                        pricing_info=None, customer_goal=None, programm_info=None):
     """Phasen-Coach gibt didaktische Hilfestellung. mode: 'easy' oder 'medium'."""
@@ -2205,7 +2376,15 @@ def call_phasen_coach(persona, conversation_history, current_phase, mode,
     try:
         raw, cost = _api_call(PHASEN_COACH_PROMPT, user_message,
                                 MAX_TOKENS_PHASEN_COACH, TEMPERATURE_COACH)
-        return json.loads(raw), cost
+        data = json.loads(raw)
+        # v2.6.5 · Post-Processor (Ansatz F, Task #18): deterministische Regel-Checks
+        # nach dem KI-Output. Markiert verletzende Optionen mit _violations-Feld,
+        # loggt Verstöße für Audit. UI kann sie separat anzeigen oder filtern.
+        data = _apply_phasen_coach_post_processor(
+            data, conversation_history, current_phase,
+            pricing_info=pricing_info, customer_goal=customer_goal,
+        )
+        return data, cost
     except Exception as e:
         return {"error": str(e)}, 0.0
 
@@ -3649,23 +3828,47 @@ def _render_phasen_coach_box():
         phase_pill = f"Phase {phase_now_str}"
     customer_state = coach.get("customer_state", "")
     methodical_hint = coach.get("methodical_hint", "")
-    st.markdown(
-        f'<div class="coach-box" style="padding: 16px 20px;">'
-        # Top-Zeile: kompakter Phase-Pill
-        f'<div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">'
-        f'<span style="background:{SELLMO_ORANGE}; color:#0a0a0a; padding:3px 10px; '
-        f'border-radius:12px; font-size:11px; font-weight:700; letter-spacing:0.05em;">'
-        f'{phase_pill}</span>'
-        f'<span style="font-size:12px; color:{TEXT_TERTIARY};">'
-        f'Kunde: {customer_state}</span>'
-        f'</div>'
-        # Methodischer Tipp prominent
-        f'<div style="font-size:14px; line-height:1.55; color:{TEXT_PRIMARY};">'
-        f'{methodical_hint}'
-        f'</div>'
-        f'</div>',
-        unsafe_allow_html=True
-    )
+
+    # v2.6.5 · Typing-Effekt für methodical_hint beim ersten Render pro Turn.
+    # Coach-Box wirkt dadurch als würde der Coach live tippen, statt Sprung von
+    # "Coach analysiert..." zu fertigem Block. Rest der UI (Karten) folgt nach.
+    turn_key = st.session_state.get("turn_count", 0)
+    typed_flag = f"_hint_typed_turn_{turn_key}"
+
+    def _coach_box_html(hint_content, blink_cursor=False):
+        cursor = ('<span style="display:inline-block; width:8px; height:16px; '
+                  f'background:{ACCENT_PRIMARY}; margin-left:2px; '
+                  'animation:cc-blink 1s infinite;"></span>') if blink_cursor else ''
+        return (
+            f'<style>@keyframes cc-blink {{0%,49%{{opacity:1;}}50%,100%{{opacity:0;}}}}</style>'
+            f'<div class="coach-box" style="padding: 16px 20px;">'
+            f'<div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">'
+            f'<span style="background:{SELLMO_ORANGE}; color:#0a0a0a; padding:3px 10px; '
+            f'border-radius:12px; font-size:11px; font-weight:700; letter-spacing:0.05em;">'
+            f'{phase_pill}</span>'
+            f'<span style="font-size:12px; color:{TEXT_TERTIARY};">'
+            f'Kunde: {customer_state}</span>'
+            f'</div>'
+            f'<div style="font-size:14px; line-height:1.55; color:{TEXT_PRIMARY};">'
+            f'{hint_content}{cursor}'
+            f'</div>'
+            f'</div>'
+        )
+
+    if st.session_state.get(typed_flag) or not methodical_hint:
+        st.markdown(_coach_box_html(methodical_hint), unsafe_allow_html=True)
+    else:
+        import time as _time
+        placeholder = st.empty()
+        words = methodical_hint.split(" ")
+        accumulated = ""
+        for i, word in enumerate(words):
+            accumulated += (" " if i > 0 else "") + word
+            placeholder.markdown(_coach_box_html(accumulated, blink_cursor=True),
+                                 unsafe_allow_html=True)
+            _time.sleep(0.028)
+        placeholder.markdown(_coach_box_html(methodical_hint), unsafe_allow_html=True)
+        st.session_state[typed_flag] = True
 
     # Multiple-Choice-Buttons bei EASY (SOHF v2.0 Patch #51: Lern-Pfad A/B/C)
     if coach_mode == "easy" and coach.get("options"):
@@ -3830,6 +4033,11 @@ def _render_phasen_coach_box():
                 )
                 # Hover-Info kombiniert: Folge + Muster + Tipp (Streamlit-help = kleiner "?"-Icon am Button)
                 help_parts = []
+                # v2.6.5 Post-Processor: Verstöße oben im Hover anzeigen (falls vorhanden)
+                violations = opt.get("_violations", []) or []
+                if violations:
+                    v_labels = [f"⚠ {_VIOLATION_LABELS.get(v, v)}" for v in violations]
+                    help_parts.append("Post-Processor-Warnung:\n" + "\n".join(v_labels))
                 if consequence_hint:
                     help_parts.append(f"Folge: {consequence_hint}")
                 if muster_tooltip:
