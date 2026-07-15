@@ -3,3 +3,4 @@ anthropic>=0.40.0
 streamlit-authenticator>=0.3.2
 bcrypt>=4.1.0
 PyYAML>=6.0
+supabase>=2.7.0

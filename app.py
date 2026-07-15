@@ -2298,7 +2298,9 @@ def init_session_state():
         "session_log": [],  # Session-Logging-System (30.05. nachmittags): jede Aktion mit Timestamp
         "session_feedback": {},  # Pro markierter Turn: {turn_n: "feedback_text"}
         "session_feedback_global": "",  # Gesamt-Session-Feedback
-        "session_feedback_saved": False,  # Verhindert Doppel-Speichern
+        "session_feedback_saved": False,  # Verhindert Doppel-Speichern (Filesystem)
+        "session_supabase_saved": False,  # Verhindert Doppel-Speichern (Supabase)
+        "session_supabase_id": None,      # Stabile ID für Upserts
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -2306,6 +2308,15 @@ def init_session_state():
 
 
 def reset_session():
+    # Best-effort Auto-Save: wenn Session gestartet war aber nicht sauber beendet,
+    # trotzdem persistieren (z.B. "Neue Session"-Klick mid-conversation).
+    try:
+        if (st.session_state.get("session_started")
+                and st.session_state.get("turn_count", 0) > 0
+                and not st.session_state.get("session_supabase_saved")):
+            _save_session_to_supabase()
+    except Exception:
+        pass
     for k in list(st.session_state.keys()):
         del st.session_state[k]
     init_session_state()
@@ -2326,6 +2337,108 @@ def _log_event(event_type, **kwargs):
     }
     entry.update(kwargs)
     st.session_state.session_log.append(entry)
+
+
+# ============================================================
+# SUPABASE PERSISTENCE (Auto-Save · v2.6.4 · 2026-07-15)
+# ============================================================
+# Fail-silent: fehlende Secrets, fehlendes Package oder Netzwerk-Fehler
+# lassen die App normal weiterlaufen und fallen auf Filesystem zurück.
+
+_SUPABASE_CLIENT_CACHE = {"client": None, "checked": False}
+
+
+def _get_supabase_client():
+    """Lazy-init des Supabase-Clients. Returns None wenn Secrets fehlen oder Import failt."""
+    if _SUPABASE_CLIENT_CACHE["checked"]:
+        return _SUPABASE_CLIENT_CACHE["client"]
+    _SUPABASE_CLIENT_CACHE["checked"] = True
+    try:
+        url = st.secrets.get("SUPABASE_URL", "")
+        key = st.secrets.get("SUPABASE_SERVICE_KEY", "")
+        if not url or not key:
+            return None
+        from supabase import create_client
+        client = create_client(url, key)
+        _SUPABASE_CLIENT_CACHE["client"] = client
+        return client
+    except Exception:
+        return None
+
+
+def _save_session_to_supabase():
+    """Persistiert die aktuelle Session nach Supabase (upsert). Idempotent via
+    session_id + session_supabase_saved-Flag. Returns True bei Erfolg, False sonst."""
+    client = _get_supabase_client()
+    if client is None:
+        return False
+    try:
+        persona = st.session_state.get("persona") or {}
+        pricing = st.session_state.get("pricing_info") or {}
+        auth_username = st.session_state.get("auth_username", "") or ""
+        token_last4 = (auth_username.replace("beta_", "")
+                       if auth_username.startswith("beta_") else None)
+        # session_id: stabil über mehrere Save-Aufrufe (Auto-End + manuelle Feedback-Speicherung)
+        session_id = st.session_state.get("session_supabase_id")
+        if not session_id:
+            session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+            st.session_state["session_supabase_id"] = session_id
+        row = {
+            "session_id": session_id,
+            "token_last4": token_last4,
+            "user_name": st.session_state.get("auth_name"),
+            "role": st.session_state.get("role"),
+            "persona_id": persona.get("id"),
+            "persona_name": persona.get("name"),
+            "form_type": persona.get("form_type"),
+            "difficulty": persona.get("difficulty"),
+            "coach_mode": st.session_state.get("coach_mode"),
+            "feedback_mode": st.session_state.get("feedback_mode"),
+            "turn_count": st.session_state.get("turn_count", 0),
+            "total_cost_eur": float(st.session_state.get("total_cost_eur", 0.0)),
+            "pricing_amount": pricing.get("amount"),
+            "customer_goal": st.session_state.get("customer_goal"),
+            "programm_info": st.session_state.get("programm_info"),
+            "conversation_history": st.session_state.get("conversation_history", []),
+            "session_log": st.session_state.get("session_log", []),
+            "end_of_call_report": st.session_state.get("end_of_call_report"),
+            "session_feedback": st.session_state.get("session_feedback", {}),
+            "session_feedback_global": st.session_state.get("session_feedback_global", ""),
+            "started_at": st.session_state.get("started_at"),
+            "ended_at": datetime.now().isoformat(),
+        }
+        client.table("sessions").upsert(row, on_conflict="session_id").execute()
+        st.session_state["session_supabase_saved"] = True
+        return True
+    except Exception:
+        return False
+
+
+def _load_recent_scores_from_supabase(n=3, token_last4=None):
+    """Lädt letzte n Sessions aus Supabase. Optional gefiltert nach token_last4
+    (nur eigene Sessions des Beta-Testers). Returns Liste sortiert älteste→neueste."""
+    client = _get_supabase_client()
+    if client is None:
+        return []
+    try:
+        query = client.table("sessions").select("session_id, created_at, end_of_call_report")
+        if token_last4:
+            query = query.eq("token_last4", token_last4)
+        result = query.order("created_at", desc=True).limit(n).execute()
+        scores = []
+        for row in (result.data or []):
+            report = row.get("end_of_call_report") or {}
+            pct = report.get("methodisch_valide_quote", {}).get("percentage")
+            if pct is None:
+                continue
+            scores.append({
+                "ts": row.get("session_id") or "",
+                "pct": int(pct),
+                "rating": report.get("overall_rating", ""),
+            })
+        return list(reversed(scores))
+    except Exception:
+        return []
 
 
 def _save_session_log_to_file():
@@ -2405,6 +2518,8 @@ def _save_session_log_to_file():
 
     file_path.write_text("\n".join(lines), encoding="utf-8")
     st.session_state.session_feedback_saved = True
+    # Zusätzlich Supabase (best-effort, fail-silent) — für Cloud-Persistenz + Retention-Bar
+    _save_session_to_supabase()
     return str(file_path)
 
 
@@ -2572,10 +2687,19 @@ def render_onboarding_screen():
 # ============================================================
 
 def _load_recent_session_scores(n=3):
-    """Parst die letzten n Session-Log-Files aus ../Feedback/session_*.md und
-    extrahiert (timestamp_str, percentage, overall_rating).
-    Rückgabe: chronologisch aufsteigend (älteste zuerst).
+    """Rückgabe: bis zu n Scores, chronologisch aufsteigend (älteste zuerst).
+    Datenquelle: Supabase (Cloud, persistent), Fallback: Filesystem (lokal-Dev).
+    Beta-Tester sehen nur ihre eigenen Sessions (Filter auf token_last4).
     """
+    # Zuerst Supabase (Cloud-Persistenz) — nur eigene Sessions pro Beta-Tester
+    auth_username = st.session_state.get("auth_username", "") or ""
+    token_last4 = (auth_username.replace("beta_", "")
+                   if auth_username.startswith("beta_") else None)
+    supabase_scores = _load_recent_scores_from_supabase(n=n, token_last4=token_last4)
+    if supabase_scores:
+        return supabase_scores
+
+    # Fallback: Filesystem (lokaler Dev-Modus ohne Supabase-Setup)
     import re as _re
     feedback_dir = APP_DIR.parent / "Feedback"
     if not feedback_dir.exists():
@@ -3776,6 +3900,10 @@ def _end_session():
                                                 "end_of_call", evaluating_role=eval_role)
             st.session_state.end_of_call_report = report
             st.session_state.total_cost_eur += cost
+
+    # Auto-Save nach Supabase — auch ohne Klick auf "Feedback speichern".
+    # Sonst gehen Sessions verloren, wenn Tester direkt den Browser schließen.
+    _save_session_to_supabase()
 
 
 # ============================================================
