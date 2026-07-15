@@ -2526,7 +2526,7 @@ def _save_session_log_to_file():
         # Wenn Feedback für diesen Turn vorliegt: anhängen
         fb_for_turn = session_feedback.get(str(turn_n))
         if fb_for_turn and etype == "feedback_marker":
-            lines.append(f"\n> **Christian-Feedback (markiert):** {fb_for_turn}\n")
+            lines.append(f"\n> **User-Feedback (markiert):** {fb_for_turn}\n")
         lines.append("")
 
     # Globales Session-Feedback
@@ -4256,7 +4256,7 @@ def render_end_of_call_screen():
         # SESSION-FEEDBACK-FORM (Session-Logging-System · 30.05.)
         # ============================================================
         st.markdown("---")
-        st.markdown("### Christian-Feedback zu dieser Session")
+        st.markdown("### Dein Session-Feedback")
         st.markdown(
             f'<div style="color:{TEXT_TERTIARY}; font-size:12px; margin-bottom:8px;">'
             f"Markierte Turns + Gesamt-Feedback werden im Archiv-File gespeichert "
@@ -4301,7 +4301,7 @@ def render_end_of_call_screen():
                     if feedback_text:
                         st.session_state.session_feedback[str(turn_n)] = feedback_text
         else:
-            st.caption("Keine Turns markiert (während der Session 🚩-Button nutzen).")
+            st.caption("Keine Runden markiert (während der Session 🚩-Button nutzen).")
 
         st.markdown("#### Gesamt-Session-Feedback")
         global_fb = st.text_area(
