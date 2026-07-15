@@ -2366,11 +2366,39 @@ def _get_supabase_client():
         return None
 
 
+def _supabase_debug_status():
+    """Nicht-invasiver Verbindungs-Check für Sidebar-Debug (nur BETA_MODE).
+    Prüft: Secrets gesetzt? Package importierbar? Table erreichbar?
+    Returns {"level": "ok"|"fail"|"off", "msg": str}."""
+    try:
+        url = st.secrets.get("SUPABASE_URL", "")
+        key = st.secrets.get("SUPABASE_SERVICE_KEY", "")
+    except Exception:
+        return {"level": "off", "msg": "Secrets nicht lesbar"}
+    if not url or not key:
+        return {"level": "off", "msg": "URL/Key fehlt in Secrets"}
+    try:
+        from supabase import create_client  # noqa: F401
+    except ImportError:
+        return {"level": "fail", "msg": "supabase-py nicht installiert"}
+    client = _get_supabase_client()
+    if client is None:
+        return {"level": "fail", "msg": "Client-Init failed"}
+    try:
+        client.table("sessions").select("id", count="exact").limit(1).execute()
+        return {"level": "ok", "msg": "verbunden"}
+    except Exception as e:
+        return {"level": "fail", "msg": f"{type(e).__name__}: {str(e)[:60]}"}
+
+
 def _save_session_to_supabase():
     """Persistiert die aktuelle Session nach Supabase (upsert). Idempotent via
     session_id + session_supabase_saved-Flag. Returns True bei Erfolg, False sonst."""
     client = _get_supabase_client()
     if client is None:
+        st.session_state["_last_supabase_save_result"] = {
+            "level": "fail", "msg": "kein Client (Secrets/Import?)"
+        }
         return False
     try:
         persona = st.session_state.get("persona") or {}
@@ -2409,8 +2437,14 @@ def _save_session_to_supabase():
         }
         client.table("sessions").upsert(row, on_conflict="session_id").execute()
         st.session_state["session_supabase_saved"] = True
+        st.session_state["_last_supabase_save_result"] = {
+            "level": "ok", "msg": f"OK · session_id={session_id}"
+        }
         return True
-    except Exception:
+    except Exception as e:
+        st.session_state["_last_supabase_save_result"] = {
+            "level": "fail", "msg": f"{type(e).__name__}: {str(e)[:80]}"
+        }
         return False
 
 
@@ -3291,6 +3325,28 @@ def render_chat_screen():
             f"</div>",
             unsafe_allow_html=True
         )
+
+        # Debug: Supabase-Verbindungsstatus (nur BETA_MODE, um Tester nicht zu verwirren)
+        try:
+            _beta_mode_flag = bool(st.secrets.get("BETA_MODE", False))
+        except Exception:
+            _beta_mode_flag = False
+        if _beta_mode_flag:
+            _sb_status = _supabase_debug_status()
+            _sb_color = {"ok": ACCENT_PRIMARY, "fail": ACCENT_RED, "off": TEXT_TERTIARY}[_sb_status["level"]]
+            st.markdown(
+                f'<div style="font-size:10px; color:{_sb_color}; margin-top:8px; '
+                f'text-align:center; opacity:0.8;">Supabase: {_sb_status["msg"]}</div>',
+                unsafe_allow_html=True
+            )
+            last_save = st.session_state.get("_last_supabase_save_result")
+            if last_save:
+                _lc = {"ok": ACCENT_PRIMARY, "fail": ACCENT_RED}.get(last_save["level"], TEXT_TERTIARY)
+                st.markdown(
+                    f'<div style="font-size:10px; color:{_lc}; text-align:center; opacity:0.7;">'
+                    f'Letzter Save: {last_save["msg"]}</div>',
+                    unsafe_allow_html=True
+                )
 
     # Main-Bereich (volle Breite): Chat
     title_role = "Closer-Training" if role == "closer" else "Kunde-Training"
