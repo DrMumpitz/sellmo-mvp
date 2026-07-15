@@ -2688,7 +2688,7 @@ DEMO_DEFAULTS = {
     "umfang_live": True,
     "umfang_rollenspiele": True,
     "umfang_freitext_input": "8-Wochen-Closer-Programm mit wöchentlichen Live-Calls, 1:1 Coaching, Rollenspielen und Community-Zugang.",
-    "customer_goal_input": "6.000€/Monat als Closer im High-Ticket-Coaching",
+    "customer_goal_input": "20.000€/Monat als Closer im High-Ticket-Coaching",
 }
 
 
@@ -3171,7 +3171,7 @@ def render_setup_screen():
     customer_goal = st.text_input(
         "Kunden-Ziel *",
         key="customer_goal_input",
-        placeholder="z.B. 6.000€/Monat mit Closer-Skills"
+        placeholder="z.B. 20.000€/Monat mit Closer-Skills"
     )
 
     # === 5. Feedback-Modus ===
