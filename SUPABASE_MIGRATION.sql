@@ -44,3 +44,11 @@ alter table public.sessions enable row level security;
 
 -- Verifikation (kannst du nach dem RUN in einem neuen Query ausführen):
 -- select count(*) from public.sessions;   -- sollte 0 zurückgeben
+
+-- ============================================================
+-- MIGRATION v2 (2026-07-15): user_alternatives-Feld für Ground-Truth-Sammlung
+-- ============================================================
+-- Kann als eigener Query ausgeführt werden. Idempotent — safe bei Wiederholung.
+
+alter table public.sessions
+    add column if not exists user_alternatives jsonb;

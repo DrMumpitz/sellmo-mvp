@@ -2341,6 +2341,7 @@ def init_session_state():
         "session_feedback_saved": False,  # Verhindert Doppel-Speichern (Filesystem)
         "session_supabase_saved": False,  # Verhindert Doppel-Speichern (Supabase)
         "session_supabase_id": None,      # Stabile ID für Upserts
+        "user_alternatives": {},          # {turn_n_str: "bessere Formulierung"} — Ground-Truth v3.0
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -2472,6 +2473,7 @@ def _save_session_to_supabase():
             "end_of_call_report": st.session_state.get("end_of_call_report"),
             "session_feedback": st.session_state.get("session_feedback", {}),
             "session_feedback_global": st.session_state.get("session_feedback_global", ""),
+            "user_alternatives": st.session_state.get("user_alternatives", {}),
             "started_at": st.session_state.get("started_at"),
             "ended_at": datetime.now().isoformat(),
         }
@@ -2578,6 +2580,18 @@ def _save_session_log_to_file():
         lines.append("")
         lines.append(global_fb)
         lines.append("")
+
+    # Bessere Formulierungen (Ground-Truth für Prompt-Tuning v3.0)
+    user_alts = st.session_state.get("user_alternatives", {}) or {}
+    if user_alts:
+        lines.append("---")
+        lines.append("")
+        lines.append("## Bessere Formulierungen (Ground-Truth)")
+        lines.append("")
+        for turn_n, alt in sorted(user_alts.items(), key=lambda kv: int(kv[0])):
+            lines.append(f"### Runde {turn_n}")
+            lines.append(alt)
+            lines.append("")
 
     # End-of-Call-Report (falls vorhanden)
     eoc = st.session_state.get("end_of_call_report")
@@ -4428,6 +4442,60 @@ def render_end_of_call_screen():
                         st.session_state.session_feedback[str(turn_n)] = feedback_text
         else:
             st.caption("Keine Runden markiert (während der Session 🚩-Button nutzen).")
+
+        # ============================================================
+        # BESSERE FORMULIERUNGEN — Ground-Truth-Sammlung für Prompt-Kalibrierung v3.0
+        # ============================================================
+        # Pro Runde ein optionales Freitextfeld. Wenn Christian eine Alternative
+        # zur Coach-Empfehlung tippt, landet sie in Supabase als user_alternatives.
+        # Damit haben wir am Ende ein "Best-Practice nach Christian"-Dataset für
+        # spätere Prompt-Iterationen.
+        history = st.session_state.get("conversation_history", []) or []
+        closer_turns = [(i, m) for i, m in enumerate(history) if m.get("role") == "closer"]
+        if closer_turns:
+            with st.expander("💡 Bessere Formulierungen (optional) — deine Ground-Truth für Prompt-Tuning"):
+                st.markdown(
+                    f'<div style="color:{TEXT_TERTIARY}; font-size:12px; margin-bottom:12px;">'
+                    f"Falls dir zu einer Runde eine bessere Antwort einfällt, notiere sie hier. "
+                    f"Wandert in die Session-Row und wird für spätere Prompt-Kalibrierung genutzt."
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+                for turn_n, (hist_idx, closer_msg) in enumerate(closer_turns, start=1):
+                    # Vorheriger Kunden-Move für Kontext
+                    prev_customer = ""
+                    for j in range(hist_idx - 1, -1, -1):
+                        if history[j].get("role") == "customer":
+                            prev_customer = history[j].get("text", "")
+                            break
+                    closer_text = closer_msg.get("text", "")
+                    # Kompakter Kontext
+                    _prev_cut = (prev_customer[:120] + "…") if len(prev_customer) > 120 else prev_customer
+                    _closer_cut = (closer_text[:120] + "…") if len(closer_text) > 120 else closer_text
+                    st.markdown(
+                        f'<div style="border-left:2px solid {BORDER_DEFAULT}; padding:4px 12px; '
+                        f'margin:8px 0 4px 0;">'
+                        f'<div style="font-size:11px; color:{TEXT_TERTIARY}; letter-spacing:0.06em; '
+                        f'text-transform:uppercase;">Runde {turn_n}</div>'
+                        f'<div style="font-size:12px; color:{TEXT_SECONDARY}; margin-top:4px;">'
+                        f'<b>Kunde:</b> {_prev_cut}</div>'
+                        f'<div style="font-size:12px; color:{TEXT_SECONDARY}; margin-top:2px;">'
+                        f'<b>Deine Antwort:</b> {_closer_cut}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+                    alt_key = f"user_alt_turn_{turn_n}"
+                    alt_text = st.text_area(
+                        "Bessere Formulierung",
+                        key=alt_key,
+                        height=68,
+                        placeholder="Leer lassen wenn deine Antwort okay war.",
+                        label_visibility="collapsed",
+                    )
+                    if alt_text:
+                        st.session_state.user_alternatives[str(turn_n)] = alt_text
+                    elif str(turn_n) in st.session_state.user_alternatives:
+                        del st.session_state.user_alternatives[str(turn_n)]
 
         st.markdown("#### Gesamt-Session-Feedback")
         global_fb = st.text_area(
