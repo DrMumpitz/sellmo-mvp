@@ -2201,6 +2201,13 @@ _FOLLOWUP_COMMITMENT_PHRASES = [
     "kannst du dich verpflichten", "bist du wirklich",
 ]
 
+_CR5_ANBIEDERUNG_PATTERNS = [
+    "du hast recht", "du hast völlig recht", "das war unfair",
+    "das war eine unfaire", "mein fehler", "entschuldige",
+    "das war zu direkt", "das war nicht in ordnung",
+    "ich hätte das anders", "ich hätte es anders", "sorry, das war",
+]
+
 _HALLUZINATION_PATTERNS = [
     r"[Dd]u hast (?:selbst |gerade |eben )?(?:gesagt|genannt|erwähnt|beschrieben)[:,]?\s*[\"']([^\"']{6,})[\"']?",
     r"[Ww]ie du (?:selbst |gerade |eben )?(?:gesagt|genannt|erwähnt|beschrieben)(?: hast)?[:,]?\s*[\"']([^\"']{6,})[\"']?",
@@ -2280,6 +2287,17 @@ def _check_wert_redundanz(option_text, conversation_history, pricing_info, custo
     return False
 
 
+def _check_cr5_anbiederung(option_text):
+    """R11 · CR5-Anbiederung: Coach darf eigenen Fehler nicht eingestehen /
+    nachgeben. Aus Blindtest v2.6.6: 'Du hast recht, das war unfair' - Coach
+    zieht sich zurück und verliert Autorität."""
+    text_l = (option_text or "").lower()
+    for pat in _CR5_ANBIEDERUNG_PATTERNS:
+        if pat in text_l:
+            return True
+    return False
+
+
 def _check_handlungs_trigger_verletzung(option_text, conversation_history):
     """R4: Kunde sendet Handlungs-Trigger, Option enthält Commitment-Rückfrage."""
     last_customer = next(
@@ -2301,6 +2319,7 @@ _VIOLATION_LABELS = {
     "phase_sprung_p5_p6": "Close-Sprache in früher Phase",
     "wert_wiederholung": "Preis/Ziel bereits genannt",
     "handlungs_trigger_ignoriert": "Kunde will handeln, Option fragt zurück",
+    "cr5_anbiederung": "Anbiederung / eigenen Fehler eingestehen",
 }
 
 
@@ -2329,6 +2348,8 @@ def _apply_phasen_coach_post_processor(coach_data, conversation_history, current
             violations.append("wert_wiederholung")
         if _check_handlungs_trigger_verletzung(text, conversation_history):
             violations.append("handlungs_trigger_ignoriert")
+        if _check_cr5_anbiederung(text):
+            violations.append("cr5_anbiederung")
         if violations:
             opt["_violations"] = violations
             total_violations += len(violations)
