@@ -2388,7 +2388,7 @@ def _supabase_debug_status():
         client.table("sessions").select("id", count="exact").limit(1).execute()
         return {"level": "ok", "msg": "verbunden"}
     except Exception as e:
-        return {"level": "fail", "msg": f"{type(e).__name__}: {str(e)[:60]}"}
+        return {"level": "fail", "msg": f"{type(e).__name__}: {str(e)[:250]}"}
 
 
 def _save_session_to_supabase():
@@ -2443,7 +2443,7 @@ def _save_session_to_supabase():
         return True
     except Exception as e:
         st.session_state["_last_supabase_save_result"] = {
-            "level": "fail", "msg": f"{type(e).__name__}: {str(e)[:80]}"
+            "level": "fail", "msg": f"{type(e).__name__}: {str(e)[:250]}"
         }
         return False
 
