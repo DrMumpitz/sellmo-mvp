@@ -2562,7 +2562,8 @@ def _save_session_log_to_file():
 # ============================================================
 
 PHASE_DEFINITIONS = [
-    # P-3-Fix (01.06.): EPISCH-Notation in Sidebar.
+    # Coach-Prompts + JSON-Reports arbeiten weiter auf 6 Phasen (E, P, I, S, C, H).
+    # Diese Liste ist die interne Wahrheit — bleibt unverändert.
     # (phase_id, episch_letter, episch_name)
     ("Pre-0", "•", "Vertrauens-Baseline (Wütender)"),
     ("1", "E", "Entschärfen"),
@@ -2571,6 +2572,19 @@ PHASE_DEFINITIONS = [
     ("4", "S", "Sichtweise"),
     ("5", "C", "Commitment"),
     ("6", "H", "Handlung"),
+]
+
+# UI-Display-Merge (15.07.): Entschärfen + Präzisieren werden für den User als
+# eine Phase "EP · Entschärfen + Präzisieren" angezeigt — weil sie in der Praxis
+# in einem Move fließen. Interne Coach-Logik bleibt bei 6 Phasen unverändert.
+# (display_letter, display_label, phase_ids_gruppe)
+PHASE_DISPLAY_GROUPS = [
+    ("•", "Vertrauens-Baseline (Wütender)", {"Pre-0"}),
+    ("EP", "Entschärfen + Präzisieren", {"1", "2"}),
+    ("I", "Isolieren", {"3"}),
+    ("S", "Sichtweise", {"4"}),
+    ("C", "Commitment", {"5"}),
+    ("H", "Handlung", {"6"}),
 ]
 
 
@@ -2582,24 +2596,24 @@ def render_phase_bar():
 
     html_parts = ['<div class="phase-bar">']
     html_parts.append('<div class="coach-meta" style="margin-bottom: 12px;">EPISCH-Phasen-Pfad</div>')
-    for phase, episch_letter, label in PHASE_DEFINITIONS:
-        if phase == "Pre-0" and not show_pre0:
+    for display_letter, label, phase_ids in PHASE_DISPLAY_GROUPS:
+        if "Pre-0" in phase_ids and not show_pre0:
             continue
-        if phase == current:
+        # Gruppe aktiv wenn irgendeine der internen Phasen aktiv ist
+        if current is not None and current in phase_ids:
             klass = "phase-active"
             dot_color = ACCENT_PRIMARY
-        elif phase in visited:
+        elif phase_ids & visited:
             klass = "phase-completed"
             dot_color = SUCCESS
         else:
             klass = "phase-pending"
             dot_color = TEXT_TERTIARY
 
-        # P-3-Fix (01.06.): EPISCH-Buchstabe prominent statt "P1"
         html_parts.append(
             f'<div class="phase-item {klass}">'
             f'<span class="phase-dot" style="background:{dot_color};"></span>'
-            f'<strong style="margin-right: 8px; font-size: 15px; color:{dot_color};">{episch_letter}</strong> '
+            f'<strong style="margin-right: 8px; font-size: 15px; color:{dot_color};">{display_letter}</strong> '
             f'<span style="font-size: 13px;">{label}</span>'
             f'</div>'
         )
@@ -4069,19 +4083,36 @@ def render_end_of_call_screen():
         )
 
         # === Phase-Verlauf als visuelle EPISCH-Kette ===
+        # UI-Merge: aufeinanderfolgende "1" (E) und "2" (P) werden zu EINEM "EP"-Chip
+        # gemergt, sonst hätten wir bei "P1 → P2 → P4" ein "E › P › S", das dem
+        # User-Modell "EP als eine Phase" widerspricht.
         journey = overview.get("phase_journey", [])
         if journey:
             _episch_map = {p_id: (letter, name) for p_id, letter, name in PHASE_DEFINITIONS}
+            # Merge-Pass: konsekutive "1"/"2" zu "EP" konsolidieren
+            _merged = []
+            for p in journey:
+                p_str = str(p)
+                if p_str in ("1", "2"):
+                    if _merged and _merged[-1] == "EP":
+                        continue
+                    _merged.append("EP")
+                else:
+                    _merged.append(p_str)
             chips = []
-            for i, p in enumerate(journey):
-                letter, name = _episch_map.get(str(p), (str(p), ""))
+            for i, p in enumerate(_merged):
+                if p == "EP":
+                    letter, name = "EP", "Entschärfen + Präzisieren"
+                else:
+                    letter, name = _episch_map.get(p, (p, ""))
+                chip_width = "44px" if len(letter) > 1 else "32px"
                 chips.append(
                     f'<span title="{name}" style="display:inline-flex; align-items:center; '
-                    f'  justify-content:center; width:32px; height:32px; border-radius:50%; '
-                    f'  background:{ACCENT_SUBTLE}; color:{ACCENT_PRIMARY}; font-weight:700; '
-                    f'  font-size:14px; margin:0 2px;">{letter}</span>'
+                    f'  justify-content:center; min-width:{chip_width}; height:32px; padding:0 8px; '
+                    f'  border-radius:16px; background:{ACCENT_SUBTLE}; color:{ACCENT_PRIMARY}; '
+                    f'  font-weight:700; font-size:14px; margin:0 2px;">{letter}</span>'
                 )
-                if i < len(journey) - 1:
+                if i < len(_merged) - 1:
                     chips.append(
                         f'<span style="color:{TEXT_TERTIARY}; margin:0 4px;">›</span>'
                     )
