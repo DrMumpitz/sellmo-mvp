@@ -2348,7 +2348,9 @@ def _apply_phasen_coach_post_processor(coach_data, conversation_history, current
             violations.append("wert_wiederholung")
         if _check_handlungs_trigger_verletzung(text, conversation_history):
             violations.append("handlungs_trigger_ignoriert")
-        if _check_cr5_anbiederung(text):
+        # v2.6.8: R11 CR5-Anbiederung nicht auf FALSCH-Karten prüfen —
+        # C-Karten sollen didaktisch schlechte Beispiele zeigen dürfen.
+        if opt.get("correctness") != "falsch" and _check_cr5_anbiederung(text):
             violations.append("cr5_anbiederung")
         if violations:
             opt["_violations"] = violations

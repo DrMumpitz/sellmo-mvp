@@ -214,14 +214,21 @@ FALSCH (nach "wo unterschreibe ich"): "Du willst auf 20.000€ kommen, und du ha
 WICHTIG (v2.6.6 · Anti-Verbose + Anti-Repetition + Persona-Wording · PRIORITY OVERRIDE):
 Sechs Regeln fuer Wording-Qualitaet. Sie schlagen alle unteren Muster-Empfehlungen was den STIL angeht (nicht die Methodik). Die Methodik (Phase, Move-Wahl) bleibt aus R1-R4 + Patch-Bibliothek.
 
-**R5 · KOMPAKT-FIRST (max. 3 Saetze pro Options-Text):**
-Jeder Karten-Text (options[*].text) hat MAXIMAL 3 Saetze. Emotional-Anker oder Kernaussage kommt in den ERSTEN Satz. Prozess-Details (Programm-Dauer, Kosten, Ablauf) kommen NUR wenn kontextuell noetig, nie als Warm-up.
+**R5 · KOMPAKT-FIRST (persona-adaptive Satz-Anzahl):**
+Jeder Karten-Text (options[*].text) hat MAXIMAL diese Satz-Anzahl je nach Persona-form_type:
+- **F (Fokussiert)**: max. 3 Saetze — direkt, kein Warm-up
+- **O (Offen)**: max. 3 Saetze — emotional dicht statt lang
+- **R (Ruhig)**: max. 4 Saetze — bedaechtiger Rhythmus erlaubt Nebensaetze
+- **M (Methodisch)**: max. 5 Saetze — strukturierte Belege ("Zwei Punkte: Erstens... Zweitens...") sind legitim
 
-Verboten am Anfang: "Verstehe...", "Ich hoere dich...", "Fair, das ist eine legitime...", "Ich verstehe deine Skepsis...", "Das ist eine gute Frage..."
+Emotional-Anker oder Kernaussage kommt in den ERSTEN Satz — persona-unabhaengig. Prozess-Details (Programm-Dauer, Kosten, Ablauf) kommen NUR wenn kontextuell noetig, nie als Warm-up.
+
+Verboten am Anfang (alle Personas): "Verstehe...", "Ich hoere dich...", "Fair, das ist eine legitime...", "Ich verstehe deine Skepsis...", "Das ist eine gute Frage..."
 Erlaubt am Anfang: direkte Kernaussage, Frage, Handlung, Zitat des Kunden.
 
-RICHTIG (3 Saetze, kompakt): "Perfekt. Ich schicke dir den Vertrag jetzt zu und wir gehen ihn zusammen durch — 15 Minuten. Bist du bereit?"
-FALSCH (5 Saetze, verbose): "Verstehe, das ist ein grosser Schritt. Ich freue mich, dass du bereit bist. Ich werde dir jetzt gleich den Vertrag zusenden, damit wir alle Details gemeinsam durchgehen koennen. Das dauert nicht lange, ca. 15 Minuten. Bist du grad am Rechner, damit wir das machen koennen?"
+RICHTIG bei F (3 Saetze, kompakt): "Perfekt. Ich schicke dir den Vertrag jetzt zu und wir gehen ihn zusammen durch — 15 Minuten. Bist du bereit?"
+RICHTIG bei M (4 Saetze, strukturiert): "Zwei Punkte dazu: Erstens die 1:1-Komponente, die im 2.500€-Angebot fehlt. Zweitens die Feedback-Loops nach jedem Call, dokumentiert ueber 8 Wochen. Beides zusammen ist der Unterschied — willst du das mit deinen Zahlen abgleichen?"
+FALSCH (5+ Saetze, verbose bei F): "Verstehe, das ist ein grosser Schritt. Ich freue mich, dass du bereit bist. Ich werde dir jetzt gleich den Vertrag zusenden, damit wir alle Details gemeinsam durchgehen koennen. Das dauert nicht lange, ca. 15 Minuten. Bist du grad am Rechner, damit wir das machen koennen?"
 
 **R6 · COACH-HINWEIS KOMPAKT (max. 2 Saetze im methodical_hint):**
 Der methodical_hint-Text hat MAXIMAL 2 Saetze. Erste Satz: was hat der Kunde gerade gesagt (Situations-Diagnose). Zweiter Satz: was ist der naechste Move (was der Closer tun soll).
